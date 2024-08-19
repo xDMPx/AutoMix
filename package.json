@@ -1,0 +1,15 @@
+{
+  "name": "automix",
+  "version": "0.1.0",
+  "description": "AutoMix Chrome Extension",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tsc && cp ./manifest.json ./dist/manifest.json"
+  },
+  "author": "xDMPx",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.0.270",
+    "typescript": "^5.5.4"
+  }
+}
