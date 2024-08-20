@@ -54,19 +54,41 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
     const res = await chrome.scripting.executeScript({
         target: { tabId: tab_id },
         func: () => {
-            let recommendations = document.getElementsByTagName("ytd-compact-video-renderer");
+            const recommendations = document.getElementsByTagName("ytd-compact-video-renderer");
             console.log(recommendations);
-            const i = Math.floor(Math.random() * recommendations.length);
+            if (recommendations === null && recommendations === undefined) {
+                return undefined;
+            }
 
-            return recommendations[i].getElementsByTagName("a")[0].href;
+            const i = Math.floor(Math.random() * recommendations.length);
+            const recommendation = recommendations[i];
+
+            const video_url = recommendation.getElementsByTagName("a")[0].href;
+            const duration = recommendation.getElementsByClassName("badge-shape-wiz__text")[0].innerHTML;
+
+            return { video_url: video_url, duration: duration };
         }
     });
 
-    const rec_video_url = res[0].result;
-    console.log(`rec_video_url: ${rec_video_url}`);
-    if (rec_video_url !== undefined && rec_video_url !== null) {
-        return rec_video_url;
+    const rec_video = res[0].result;
+    console.log(`rec_video: ${rec_video?.video_url}`);
+    if (rec_video !== undefined && rec_video !== null) {
+        const video_url = rec_video.video_url;
+        const duration = duration_to_sec(rec_video.duration);
+        console.log(`duration: ${duration}`);
+
+        const video_id = extract_video_id(video_url) as string;
+        if (duration > 600 || playedVideos.includes(video_id)) {
+            console.log("recommendation rejected");
+            return await get_random_recommendation(tab_id);
+        } else {
+            return video_url;
+        }
     } else {
         return await get_random_recommendation(tab_id);
     }
+}
+
+function duration_to_sec(duration: string): number {
+    return duration.split(':').map((val) => +val).reduce((acc, val) => acc * 60 + val);
 }
