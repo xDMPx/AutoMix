@@ -33,6 +33,7 @@ chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabCha
     }
 
     if (changeInfo.audible === true && nextVideoUrl === undefined) {
+        disable_autoplay(youtubeTabID);
         get_random_recommendation(youtubeTabID).then((video_url: string) => {
             nextVideoUrl = video_url;
             console.log(`nextVideoUrl: ${nextVideoUrl}`)
@@ -87,6 +88,22 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
     } else {
         return await get_random_recommendation(tab_id);
     }
+}
+
+async function disable_autoplay(tab_id: number) {
+    await chrome.scripting.executeScript({
+        target: { tabId: tab_id },
+        func: () => {
+            const ytp_right_controls = document.getElementsByClassName('ytp-right-controls')[0];
+            const autoplay_button = ytp_right_controls.childNodes[1] as HTMLElement;
+            const autoplay_enabled = (autoplay_button.childNodes[0].childNodes[0] as HTMLElement).ariaChecked === 'true';
+
+            if (autoplay_enabled) {
+                autoplay_button.click();
+            }
+        }
+    });
+
 }
 
 function duration_to_sec(duration: string): number {
