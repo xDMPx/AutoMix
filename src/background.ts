@@ -36,19 +36,41 @@ chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabCha
         disable_autoplay(youtubeTabID);
         get_random_recommendation(youtubeTabID).then((video_url: string) => {
             nextVideoUrl = video_url;
-            console.log(`nextVideoUrl: ${nextVideoUrl}`)
+            console.log(`nextVideoUrl: ${nextVideoUrl}`);
         })
+    }
+
+    if (changeInfo.audible === false) {
+        playback_ended(youtubeTabID).then((ended) => {
+            console.log(`ended: ${ended}`);
+            if (ended) {
+                console.log(`Navigating to next video: ${nextVideoUrl}`);
+                chrome.tabs.update(youtubeTabID as number, { url: nextVideoUrl });
+                nextVideoUrl = undefined;
+            }
+        });
     }
 })
 
-function extract_video_id(url: string): string | undefined {
-    if (url.includes("v=")) {
-        const split = url.split("v=");
-        const video_id = split.at(-1);
-        return video_id;
-    }
+//TODO: Find a better way to tell when video playback is finished
+async function playback_ended(tab_id: number): Promise<boolean> {
+    const res = await chrome.scripting.executeScript({
+        target: { tabId: tab_id },
+        func: () => {
+            const video = document.querySelectorAll('video')[0];
 
-    return undefined;
+            // Silence close to the end of the video
+            if (video.currentTime + 20 > video.duration) {
+                return true;
+            }
+
+            return video.ended;
+        }
+    });
+
+    const ended = res[0].result === true;
+
+    return ended;
 }
 
 async function get_random_recommendation(tab_id: number): Promise<string> {
@@ -103,7 +125,16 @@ async function disable_autoplay(tab_id: number) {
             }
         }
     });
+}
 
+function extract_video_id(url: string): string | undefined {
+    if (url.includes("v=")) {
+        const split = url.split("v=");
+        const video_id = split.at(-1);
+        return video_id;
+    }
+
+    return undefined;
 }
 
 function duration_to_sec(duration: string): number {
