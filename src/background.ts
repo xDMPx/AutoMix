@@ -20,6 +20,11 @@ chrome.tabs.onRemoved.addListener((tabId: number) => {
     }
 })
 
+chrome.tabs.onActivated.addListener((activeInfo: chrome.tabs.TabActiveInfo) => {
+    if (activeInfo.tabId === youtubeTabID) chrome.action.setBadgeText({ tabId: youtubeTabID, text: "ON" });
+    else chrome.action.setBadgeText({ text: "" });
+})
+
 chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
     if (tabId !== youtubeTabID) return;
 

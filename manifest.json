@@ -6,6 +6,7 @@
     "background": {
         "service_worker": "background.js"
     },
+    "action": {},
     "permissions": ["scripting"],
     "host_permissions": [
         "https://www.youtube.com/*"
