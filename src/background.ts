@@ -51,15 +51,25 @@ chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabCha
         playback_ended(youtubeTabID).then((ended) => {
             console.log(`ended: ${ended}`);
             if (ended) {
-                console.log(`Navigating to next video: ${nextVideoUrl}`);
-                chrome.tabs.update(youtubeTabID as number, { url: nextVideoUrl });
-                nextVideoUrl = undefined;
+                navigateToNextVideo(youtubeTabID as number);
             }
         });
     }
 })
 
-//TODO: Find a better way to tell when video playback is finished
+interface Message {
+    ended: boolean | undefined
+}
+
+chrome.runtime.onMessage.addListener((msg: Message, _sender, _sendResponse) => {
+    if (youtubeTabID === undefined || nextVideoUrl === undefined) return;
+    console.log("Message:");
+    console.log(msg);
+    if (msg.ended === true) {
+        navigateToNextVideo(youtubeTabID);
+    }
+});
+
 async function playback_ended(tab_id: number): Promise<boolean> {
     const res = await chrome.scripting.executeScript({
         target: { tabId: tab_id },
@@ -68,7 +78,10 @@ async function playback_ended(tab_id: number): Promise<boolean> {
 
             // Silence close to the end of the video
             if (video.currentTime + 20 > video.duration) {
-                return true;
+                video.addEventListener("ended", (_e: Event) => {
+                    const msg: Message = { ended: true };
+                    chrome.runtime.sendMessage(msg);
+                });
             }
 
             return video.ended;
@@ -117,6 +130,12 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
     } else {
         return await get_random_recommendation(tab_id);
     }
+}
+
+async function navigateToNextVideo(tab_id: number) {
+    console.log(`Navigating to next video: ${nextVideoUrl}`);
+    await chrome.tabs.update(tab_id, { url: nextVideoUrl });
+    nextVideoUrl = undefined;
 }
 
 async function disable_autoplay(tab_id: number) {
