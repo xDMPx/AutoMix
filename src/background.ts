@@ -28,6 +28,8 @@ chrome.tabs.onActivated.addListener((activeInfo: chrome.tabs.TabActiveInfo) => {
 chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
     if (tabId !== youtubeTabID) return;
 
+    chrome.action.setBadgeText({ tabId: youtubeTabID, text: "ON" });
+
     if (changeInfo.url != undefined) {
         const url = changeInfo.url;
         const video_id = extract_video_id(url);
