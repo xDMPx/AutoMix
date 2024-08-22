@@ -2,12 +2,14 @@ let youtubeTabID: number | undefined = undefined;
 let playedVideos: string[] = [];
 let nextVideoUrl: string | undefined = undefined;
 
+console.log(`AutoMix; start => ${Date.now()}`);
+
 chrome.tabs.onCreated.addListener((tab: chrome.tabs.Tab) => {
     if (tab.url !== undefined || tab.pendingUrl !== undefined) {
         const url = (tab.url ?? tab.pendingUrl) as string;
         if (url.startsWith("https://www.youtube.com/") && youtubeTabID === undefined) {
             youtubeTabID = tab.id;
-            console.log(`YouTubeTabID: ${youtubeTabID}`);
+            console.log(`AutoMix; YouTubeTabID => ${youtubeTabID}`);
         }
     }
 })
@@ -16,6 +18,7 @@ chrome.tabs.onRemoved.addListener((tabId: number) => {
     if (tabId === youtubeTabID) {
         youtubeTabID = undefined;
         nextVideoUrl = undefined;
+        console.log(`AutoMix; YouTubeTabID => ${youtubeTabID}`);
         console.log(playedVideos);
     }
 })
@@ -36,24 +39,25 @@ chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabCha
         if (video_id !== undefined) {
             playedVideos.push(video_id);
         }
-        console.log(`URL: ${url} => ${video_id}`);
+        console.log(`AutoMix; URL: ${url} => ${video_id}`);
     }
 
     if (changeInfo.audible === true && nextVideoUrl === undefined) {
         disable_autoplay(youtubeTabID);
         get_random_recommendation(youtubeTabID).then((video_url: string) => {
             nextVideoUrl = video_url;
-            console.log(`nextVideoUrl: ${nextVideoUrl}`);
+            console.log(`AutoMix; nextVideoUrl => ${nextVideoUrl}`);
         })
     }
 
     if (changeInfo.audible === false) {
-        playback_ended(youtubeTabID).then((ended) => {
-            console.log(`ended: ${ended}`);
-            if (ended) {
-                navigateToNextVideo(youtubeTabID as number);
-            }
-        });
+        playback_ended(youtubeTabID).then(
+            (ended) => {
+                console.log(`AutoMix; ended => ${ended}`);
+                if (ended) {
+                    navigateToNextVideo(youtubeTabID as number);
+                }
+            });
     }
 })
 
@@ -63,7 +67,7 @@ interface Message {
 
 chrome.runtime.onMessage.addListener((msg: Message, _sender, _sendResponse) => {
     if (youtubeTabID === undefined || nextVideoUrl === undefined) return;
-    console.log("Message:");
+    console.log(`AutoMix; Message => `);
     console.log(msg);
     if (msg.ended === true) {
         navigateToNextVideo(youtubeTabID);
@@ -73,19 +77,24 @@ chrome.runtime.onMessage.addListener((msg: Message, _sender, _sendResponse) => {
 async function playback_ended(tab_id: number): Promise<boolean> {
     const res = await chrome.scripting.executeScript({
         target: { tabId: tab_id },
-        func: () => {
-            const video = document.querySelectorAll('video')[0];
+        func:
+            () => {
+                const video = document.querySelectorAll('video')[0];
+                console.log(`AutoMix; ended => ${video.ended}`);
 
-            // Silence close to the end of the video
-            if (video.currentTime + 20 > video.duration) {
-                video.addEventListener("ended", (_e: Event) => {
-                    const msg: Message = { ended: true };
-                    chrome.runtime.sendMessage(msg);
-                });
+                // Silence close to the end of the video
+                if (video.currentTime + 20 > video.duration) {
+                    console.log(`AutoMix; Ataching ended event listener`);
+                    video.addEventListener("ended",
+                        (e: Event) => {
+                            console.log(`AutoMix; ${e}`);
+                            const msg: Message = { ended: true };
+                            chrome.runtime.sendMessage(msg);
+                        });
+                }
+
+                return video.ended;
             }
-
-            return video.ended;
-        }
     });
 
     const ended = res[0].result === true;
@@ -96,34 +105,37 @@ async function playback_ended(tab_id: number): Promise<boolean> {
 async function get_random_recommendation(tab_id: number): Promise<string> {
     const res = await chrome.scripting.executeScript({
         target: { tabId: tab_id },
-        func: () => {
-            const elements = document.getElementsByTagName("ytd-compact-video-renderer");
-            console.log(elements);
-            if (elements.length === 0) {
-                return undefined;
+        func:
+            () => {
+                const elements = document.getElementsByTagName("ytd-compact-video-renderer");
+                console.log(`AutoMix; elements =>`);
+                console.log(elements);
+                if (elements.length === 0) {
+                    return undefined;
+                }
+
+                const elementsArray = [...elements];
+                const recommendations = elementsArray.map(
+                    (element) => {
+                        const video_url = element.getElementsByTagName("a").item(0)?.href;
+                        const duration = element.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
+                        if (video_url === undefined || duration === undefined) {
+                            return undefined;
+                        }
+                        return { video_url, duration };
+                    }).filter((recommendation) => recommendation !== undefined);
+
+                if (recommendations.length === 0) {
+                    console.log(`AutoMix; No recommendations found`);
+                    return undefined;
+                }
+
+                return recommendations;
             }
-
-            const elementsArray = [...elements];
-            const recommendations = elementsArray.map(
-                (element) => {
-                    const video_url = element.getElementsByTagName("a").item(0)?.href;
-                    const duration = element.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
-                    if (video_url === undefined || duration === undefined) {
-                        return undefined;
-                    }
-                    return { video_url, duration };
-                }).filter((recommendation) => recommendation !== undefined);
-
-            if (recommendations.length === 0) {
-                return undefined;
-            }
-
-            return recommendations;
-        }
     });
 
     const recommendations = res.at(0)?.result;
-    console.log(`recommendations: ${recommendations?.length}`);
+    console.log(`AutoMix; recommendations => ${recommendations?.length}`);
     if (recommendations !== undefined) {
         const valid_recommendations = recommendations.filter(
             (r) => {
@@ -134,7 +146,9 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
                 return duration <= 600 && !playedVideos.includes(video_id);
             });
 
+        console.log(`AutoMix; valid_recommendations =>`);
         console.log(valid_recommendations);
+
         if (valid_recommendations.length === 0) {
             throw new Error("No recommendation found");
         }
@@ -150,7 +164,7 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
 }
 
 async function navigateToNextVideo(tab_id: number) {
-    console.log(`Navigating to next video: ${nextVideoUrl}`);
+    console.log(`AutoMix; Navigating to next video => ${nextVideoUrl}`);
     await chrome.tabs.update(tab_id, { url: nextVideoUrl });
     nextVideoUrl = undefined;
 }
@@ -158,15 +172,17 @@ async function navigateToNextVideo(tab_id: number) {
 async function disable_autoplay(tab_id: number) {
     await chrome.scripting.executeScript({
         target: { tabId: tab_id },
-        func: () => {
-            const ytp_right_controls = document.getElementsByClassName('ytp-right-controls')[0];
-            const autoplay_button = ytp_right_controls.childNodes[1] as HTMLElement;
-            const autoplay_enabled = (autoplay_button.childNodes[0].childNodes[0] as HTMLElement).ariaChecked === 'true';
+        func:
+            () => {
+                console.log(`AutoMix; Disabling autoplay`);
+                const ytp_right_controls = document.getElementsByClassName('ytp-right-controls')[0];
+                const autoplay_button = ytp_right_controls.childNodes[1] as HTMLElement;
+                const autoplay_enabled = (autoplay_button.childNodes[0].childNodes[0] as HTMLElement).ariaChecked === 'true';
 
-            if (autoplay_enabled) {
-                autoplay_button.click();
+                if (autoplay_enabled) {
+                    autoplay_button.click();
+                }
             }
-        }
     });
 }
 
