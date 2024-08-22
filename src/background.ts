@@ -97,36 +97,53 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
     const res = await chrome.scripting.executeScript({
         target: { tabId: tab_id },
         func: () => {
-            const recommendations = document.getElementsByTagName("ytd-compact-video-renderer");
-            console.log(recommendations);
-            if (recommendations === null && recommendations === undefined) {
+            const elements = document.getElementsByTagName("ytd-compact-video-renderer");
+            console.log(elements);
+            if (elements.length === 0) {
                 return undefined;
             }
 
-            const i = Math.floor(Math.random() * recommendations.length);
-            const recommendation = recommendations[i];
+            const elementsArray = [...elements];
+            const recommendations = elementsArray.map(
+                (element) => {
+                    const video_url = element.getElementsByTagName("a").item(0)?.href;
+                    const duration = element.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
+                    if (video_url === undefined || duration === undefined) {
+                        return undefined;
+                    }
+                    return { video_url, duration };
+                }).filter((recommendation) => recommendation !== undefined);
 
-            const video_url = recommendation.getElementsByTagName("a")[0].href;
-            const duration = recommendation.getElementsByClassName("badge-shape-wiz__text")[0].innerHTML;
+            if (recommendations.length === 0) {
+                return undefined;
+            }
 
-            return { video_url: video_url, duration: duration };
+            return recommendations;
         }
     });
 
-    const rec_video = res[0].result;
-    console.log(`rec_video: ${rec_video?.video_url}`);
-    if (rec_video !== undefined && rec_video !== null) {
-        const video_url = rec_video.video_url;
-        const duration = duration_to_sec(rec_video.duration);
-        console.log(`duration: ${duration}`);
+    const recommendations = res.at(0)?.result;
+    console.log(`recommendations: ${recommendations?.length}`);
+    if (recommendations !== undefined) {
+        const valid_recommendations = recommendations.filter(
+            (r) => {
+                const video_url = r.video_url;
+                const video_id = extract_video_id(video_url) as string;
+                const duration = duration_to_sec(r.duration);
 
-        const video_id = extract_video_id(video_url) as string;
-        if (duration > 600 || playedVideos.includes(video_id)) {
-            console.log("recommendation rejected");
-            return await get_random_recommendation(tab_id);
-        } else {
-            return video_url;
+                return duration <= 600 && !playedVideos.includes(video_id);
+            });
+
+        console.log(valid_recommendations);
+        if (valid_recommendations.length === 0) {
+            throw new Error("No recommendation found");
         }
+
+        const i = Math.floor(Math.random() * valid_recommendations.length);
+        const recommendation = valid_recommendations[i];
+        const video_url = recommendation.video_url;
+
+        return video_url;
     } else {
         return await get_random_recommendation(tab_id);
     }
