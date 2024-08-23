@@ -150,7 +150,8 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
 
 async function navigateToNextVideo(tab_id: number) {
     console.log(`AutoMix; Navigating to next video => ${nextVideoUrl}`);
-    await chrome.tabs.update(tab_id, { url: nextVideoUrl });
+    const url = nextVideoUrl;
+    setTimeout(() => chrome.tabs.update(tab_id, { url: url }), 2500);
     nextVideoUrl = undefined;
 }
 
