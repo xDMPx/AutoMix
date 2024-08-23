@@ -47,18 +47,10 @@ chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabCha
         get_random_recommendation(youtubeTabID).then((video_url: string) => {
             nextVideoUrl = video_url;
             console.log(`AutoMix; nextVideoUrl => ${nextVideoUrl}`);
-        })
+        });
+        attach_video_ended_listener(youtubeTabID);
     }
 
-    if (changeInfo.audible === false) {
-        playback_ended(youtubeTabID).then(
-            (ended) => {
-                console.log(`AutoMix; ended => ${ended}`);
-                if (ended) {
-                    navigateToNextVideo(youtubeTabID as number);
-                }
-            });
-    }
 })
 
 interface Message {
@@ -70,36 +62,29 @@ chrome.runtime.onMessage.addListener((msg: Message, _sender, _sendResponse) => {
     console.log(`AutoMix; Message => `);
     console.log(msg);
     if (msg.ended === true) {
+        console.log(`AutoMix; ended`);
         navigateToNextVideo(youtubeTabID);
     }
 });
 
-async function playback_ended(tab_id: number): Promise<boolean> {
-    const res = await chrome.scripting.executeScript({
+async function attach_video_ended_listener(tab_id: number) {
+    console.log(`AutoMix; Ataching ended event listener`);
+    await chrome.scripting.executeScript({
         target: { tabId: tab_id },
         func:
             () => {
                 const video = document.querySelectorAll('video')[0];
-                console.log(`AutoMix; ended => ${video.ended}`);
 
-                // Silence close to the end of the video
-                if (video.currentTime + 20 > video.duration) {
-                    console.log(`AutoMix; Ataching ended event listener`);
-                    video.addEventListener("ended",
-                        (e: Event) => {
-                            console.log(`AutoMix; ${e}`);
-                            const msg: Message = { ended: true };
-                            chrome.runtime.sendMessage(msg);
-                        });
-                }
+                console.log(`AutoMix; Ataching ended event listener`);
+                video.addEventListener("ended",
+                    (e: Event) => {
+                        console.log(`AutoMix; ${e}`);
+                        const msg: Message = { ended: true };
+                        chrome.runtime.sendMessage(msg);
+                    });
 
-                return video.ended;
             }
     });
-
-    const ended = res[0].result === true;
-
-    return ended;
 }
 
 async function get_random_recommendation(tab_id: number): Promise<string> {
