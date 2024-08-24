@@ -1,6 +1,6 @@
 let youtubeTabID: number | undefined = undefined;
 let playedVideos: string[] = [];
-let nextVideoUrl: string | undefined = undefined;
+let attached_listener = false;
 
 console.log(`AutoMix; start => ${Date.now()}`);
 
@@ -17,7 +17,7 @@ chrome.tabs.onCreated.addListener((tab: chrome.tabs.Tab) => {
 chrome.tabs.onRemoved.addListener((tabId: number) => {
     if (tabId === youtubeTabID) {
         youtubeTabID = undefined;
-        nextVideoUrl = undefined;
+        attached_listener = false;
         console.log(`AutoMix; YouTubeTabID => ${youtubeTabID}`);
         console.log(playedVideos);
     }
@@ -42,48 +42,51 @@ chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabCha
         console.log(`AutoMix; URL: ${url} => ${video_id}`);
     }
 
-    if (changeInfo.audible === true && nextVideoUrl === undefined) {
+    if (changeInfo.audible === true && attached_listener === false) {
+        attached_listener = true;
         disable_autoplay(youtubeTabID);
         get_random_recommendation(youtubeTabID).then((video_url: string) => {
-            nextVideoUrl = video_url;
-            console.log(`AutoMix; nextVideoUrl => ${nextVideoUrl}`);
+            let next_video_url = video_url;
+            console.log(`AutoMix; next_video_url => ${next_video_url}`);
+            attach_video_ended_listener(youtubeTabID as number, next_video_url);
         });
-        attach_video_ended_listener(youtubeTabID);
     }
 
 })
 
 interface Message {
-    ended: boolean | undefined
+    ended: boolean | undefined,
+    next_video_url: string,
 }
 
 chrome.runtime.onMessage.addListener((msg: Message, _sender, _sendResponse) => {
-    if (youtubeTabID === undefined || nextVideoUrl === undefined) return;
+    if (youtubeTabID === undefined || attached_listener === false) return;
     console.log(`AutoMix; Message => `);
     console.log(msg);
     if (msg.ended === true) {
         console.log(`AutoMix; ended`);
-        navigateToNextVideo(youtubeTabID);
+        navigateToNextVideo(youtubeTabID, msg.next_video_url);
     }
 });
 
-async function attach_video_ended_listener(tab_id: number) {
+async function attach_video_ended_listener(tab_id: number, next_video_url: string) {
     console.log(`AutoMix; Ataching ended event listener`);
     await chrome.scripting.executeScript({
         target: { tabId: tab_id },
         func:
-            () => {
+            (next_video_url: string) => {
                 const video = document.querySelectorAll('video')[0];
 
-                console.log(`AutoMix; Ataching ended event listener`);
+                console.log(`AutoMix; Ataching ended event listener => ${next_video_url}`);
                 video.addEventListener("ended",
                     (e: Event) => {
                         console.log(`AutoMix; ${e}`);
-                        const msg: Message = { ended: true };
+                        const msg: Message = { ended: true, next_video_url };
                         chrome.runtime.sendMessage(msg);
                     });
 
-            }
+            },
+        args: [next_video_url]
     });
 }
 
@@ -121,7 +124,7 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
 
     const recommendations = res.at(0)?.result;
     console.log(`AutoMix; recommendations => ${recommendations?.length}`);
-    if (recommendations !== undefined) {
+    if (recommendations !== undefined && recommendations !== null) {
         const valid_recommendations = recommendations.filter(
             (r) => {
                 const video_url = r.video_url;
@@ -148,11 +151,10 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
     }
 }
 
-async function navigateToNextVideo(tab_id: number) {
-    console.log(`AutoMix; Navigating to next video => ${nextVideoUrl}`);
-    const url = nextVideoUrl;
-    setTimeout(() => chrome.tabs.update(tab_id, { url: url }), 2500);
-    nextVideoUrl = undefined;
+async function navigateToNextVideo(tab_id: number, next_video_url: string) {
+    console.log(`AutoMix; Navigating to next video => ${next_video_url}`);
+    setTimeout(() => chrome.tabs.update(tab_id, { url: next_video_url }), 2500);
+    attached_listener = false;
 }
 
 async function disable_autoplay(tab_id: number) {
