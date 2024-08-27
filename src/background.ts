@@ -4,39 +4,39 @@ interface AutoMixState {
     attached_listener: boolean,
 }
 
-let state: AutoMixState = {
-    youtubeTabID: undefined,
-    playedVideos: [],
-    attached_listener: false,
-}
-
 console.log(`AutoMix; start => ${Date.now()}`);
 
-chrome.tabs.onCreated.addListener((tab: chrome.tabs.Tab) => {
+chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
     if (tab.url !== undefined || tab.pendingUrl !== undefined) {
         const url = (tab.url ?? tab.pendingUrl) as string;
+        const state = await getAutoMixState();
         if (url.startsWith("https://www.youtube.com/") && state.youtubeTabID === undefined) {
             state.youtubeTabID = tab.id;
+            await setAutoMixState(state);
             console.log(`AutoMix; YouTubeTabID => ${state.youtubeTabID}`);
         }
     }
 })
 
-chrome.tabs.onRemoved.addListener((tabId: number) => {
+chrome.tabs.onRemoved.addListener(async (tabId: number) => {
+    const state = await getAutoMixState();
     if (tabId === state.youtubeTabID) {
         state.youtubeTabID = undefined;
         state.attached_listener = false;
+        await setAutoMixState(state);
         console.log(`AutoMix; YouTubeTabID => ${state.youtubeTabID}`);
         console.log(state.playedVideos);
     }
 })
 
-chrome.tabs.onActivated.addListener((activeInfo: chrome.tabs.TabActiveInfo) => {
+chrome.tabs.onActivated.addListener(async (activeInfo: chrome.tabs.TabActiveInfo) => {
+    const state = await getAutoMixState();
     if (activeInfo.tabId === state.youtubeTabID) chrome.action.setBadgeText({ tabId: state.youtubeTabID, text: "ON" });
     else chrome.action.setBadgeText({ text: "" });
 })
 
-chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
+chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
+    const state = await getAutoMixState();
     if (tabId !== state.youtubeTabID) return;
 
     chrome.action.setBadgeText({ tabId: state.youtubeTabID, text: "ON" });
@@ -46,6 +46,7 @@ chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabCha
         const video_id = extract_video_id(url);
         if (video_id !== undefined) {
             state.playedVideos.push(video_id);
+            await setAutoMixState(state);
         }
         console.log(`AutoMix; URL: ${url} => ${video_id}`);
     }
@@ -53,11 +54,13 @@ chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabCha
     if (changeInfo.audible === true && state.attached_listener === false) {
         state.attached_listener = true;
         disable_autoplay(state.youtubeTabID);
-        get_random_recommendation(state.youtubeTabID).then((video_url: string) => {
-            let next_video_url = video_url;
-            console.log(`AutoMix; next_video_url => ${next_video_url}`);
-            attach_video_ended_listener(state.youtubeTabID as number, next_video_url);
-        });
+        get_random_recommendation(state.youtubeTabID).then(
+            (video_url: string) => {
+                let next_video_url = video_url;
+                console.log(`AutoMix; next_video_url => ${next_video_url}`);
+                attach_video_ended_listener(state.youtubeTabID as number, next_video_url);
+            });
+        await setAutoMixState(state);
     }
 
 })
@@ -67,7 +70,8 @@ interface Message {
     next_video_url: string,
 }
 
-chrome.runtime.onMessage.addListener((msg: Message, _sender, _sendResponse) => {
+chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse) => {
+    const state = await getAutoMixState();
     if (state.youtubeTabID === undefined || state.attached_listener === false) return;
     console.log(`AutoMix; Message => `);
     console.log(msg);
@@ -133,6 +137,7 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
     const recommendations = res.at(0)?.result;
     console.log(`AutoMix; recommendations => ${recommendations?.length}`);
     if (recommendations !== undefined && recommendations !== null) {
+        const state = await getAutoMixState();
         const valid_recommendations = recommendations.filter(
             (r) => {
                 const video_url = r.video_url;
@@ -162,7 +167,10 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
 async function navigateToNextVideo(tab_id: number, next_video_url: string) {
     console.log(`AutoMix; Navigating to next video => ${next_video_url}`);
     setTimeout(() => chrome.tabs.update(tab_id, { url: next_video_url }), 2500);
+
+    const state = await getAutoMixState();
     state.attached_listener = false;
+    await setAutoMixState(state);
 }
 
 async function disable_autoplay(tab_id: number) {
@@ -194,4 +202,21 @@ function extract_video_id(url: string): string | undefined {
 
 function duration_to_sec(duration: string): number {
     return duration.split(':').map((val) => +val).reduce((acc, val) => acc * 60 + val);
+}
+
+async function getAutoMixState(): Promise<AutoMixState> {
+    let { state }: { [key: string]: AutoMixState | undefined } = await chrome.storage.local.get("state");
+    if (state == undefined) {
+        state = {
+            youtubeTabID: undefined,
+            playedVideos: [],
+            attached_listener: false,
+        }
+    }
+
+    return state;
+}
+
+async function setAutoMixState(state: AutoMixState) {
+    await chrome.storage.local.set({ state: state });
 }
