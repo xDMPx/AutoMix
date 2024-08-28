@@ -9,8 +9,20 @@ console.log(`AutoMix; start => ${Date.now()}`);
 chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
     if (tab.url !== undefined || tab.pendingUrl !== undefined) {
         const url = (tab.url ?? tab.pendingUrl) as string;
-        const state = await getAutoMixState();
+
+        let state = await getAutoMixState();
+        if (state.youtubeTabID !== undefined) {
+            const tab = await chrome.tabs.get(state.youtubeTabID).catch(_e => undefined);
+            if (tab === undefined) {
+                console.log(`AutoMix; Clearing old state => `);
+                console.log(state);
+                clearAutoMixState();
+                state = await getAutoMixState();
+            }
+        }
+
         if (url.startsWith("https://www.youtube.com/") && state.youtubeTabID === undefined) {
+
             state.youtubeTabID = tab.id;
             await setAutoMixState(state);
             console.log(`AutoMix; YouTubeTabID => ${state.youtubeTabID}`);
@@ -215,6 +227,10 @@ async function getAutoMixState(): Promise<AutoMixState> {
     }
 
     return state;
+}
+
+async function clearAutoMixState() {
+    await chrome.storage.local.remove("state");
 }
 
 async function setAutoMixState(state: AutoMixState) {
