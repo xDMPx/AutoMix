@@ -55,7 +55,7 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
 
     if (changeInfo.url != undefined) {
         const url = changeInfo.url;
-        const video_id = extract_video_id(url);
+        const video_id = extractVideoId(url);
         if (video_id !== undefined) {
             state.playedVideos.push(video_id);
             await setAutoMixState(state);
@@ -65,12 +65,12 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
 
     if (changeInfo.audible === true && state.attached_listener === false) {
         state.attached_listener = true;
-        disable_autoplay(state.youtubeTabID);
-        get_random_recommendation(state.youtubeTabID).then(
+        disableAutoplay(state.youtubeTabID);
+        getRandomRecommendation(state.youtubeTabID).then(
             (video_url: string) => {
                 let next_video_url = video_url;
                 console.log(`AutoMix; next_video_url => ${next_video_url}`);
-                attach_video_ended_listener(state.youtubeTabID as number, next_video_url);
+                attachVideoEndedListener(state.youtubeTabID as number, next_video_url);
             });
         await setAutoMixState(state);
     }
@@ -93,7 +93,7 @@ chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse
     }
 });
 
-async function attach_video_ended_listener(tab_id: number, next_video_url: string) {
+async function attachVideoEndedListener(tab_id: number, next_video_url: string) {
     console.log(`AutoMix; Ataching ended event listener`);
     await chrome.scripting.executeScript({
         target: { tabId: tab_id },
@@ -114,7 +114,7 @@ async function attach_video_ended_listener(tab_id: number, next_video_url: strin
     });
 }
 
-async function get_random_recommendation(tab_id: number): Promise<string> {
+async function getRandomRecommendation(tab_id: number): Promise<string> {
     const res = await chrome.scripting.executeScript({
         target: { tabId: tab_id },
         func:
@@ -153,8 +153,8 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
         const valid_recommendations = recommendations.filter(
             (r) => {
                 const video_url = r.video_url;
-                const video_id = extract_video_id(video_url) as string;
-                const duration = duration_to_sec(r.duration);
+                const video_id = extractVideoId(video_url) as string;
+                const duration = durationToSec(r.duration);
 
                 return duration <= 600 && !state.playedVideos.includes(video_id);
             });
@@ -172,7 +172,7 @@ async function get_random_recommendation(tab_id: number): Promise<string> {
 
         return video_url;
     } else {
-        return await get_random_recommendation(tab_id);
+        return await getRandomRecommendation(tab_id);
     }
 }
 
@@ -185,7 +185,7 @@ async function navigateToNextVideo(tab_id: number, next_video_url: string) {
     await setAutoMixState(state);
 }
 
-async function disable_autoplay(tab_id: number) {
+async function disableAutoplay(tab_id: number) {
     await chrome.scripting.executeScript({
         target: { tabId: tab_id },
         func:
@@ -202,7 +202,7 @@ async function disable_autoplay(tab_id: number) {
     });
 }
 
-function extract_video_id(url: string): string | undefined {
+function extractVideoId(url: string): string | undefined {
     if (url.includes("v=")) {
         const split = url.split("v=");
         const video_id = split.at(-1);
@@ -212,7 +212,7 @@ function extract_video_id(url: string): string | undefined {
     return undefined;
 }
 
-function duration_to_sec(duration: string): number {
+function durationToSec(duration: string): number {
     return duration.split(':').map((val) => +val).reduce((acc, val) => acc * 60 + val);
 }
 
