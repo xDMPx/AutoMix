@@ -93,6 +93,24 @@ chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse
     }
 });
 
+
+chrome.commands.onCommand.addListener(async (command: string) => {
+    const state = await getAutoMixState();
+    if (state.youtubeTabID === undefined || state.attached_listener === false) return;
+
+    console.log(`AutoMix; Command => ${command}`);
+    if (command == "playNext") {
+        await chrome.scripting.executeScript({
+            target: { tabId: state.youtubeTabID },
+            func:
+                () => {
+                    const video = document.querySelectorAll('video')[0];
+                    video.currentTime = video.duration - 1;
+                }
+        })
+    }
+});
+
 async function attachVideoEndedListener(tab_id: number, next_video_url: string) {
     console.log(`AutoMix; Ataching ended event listener`);
     await chrome.scripting.executeScript({

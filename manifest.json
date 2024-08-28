@@ -10,5 +10,13 @@
     "permissions": ["scripting", "storage"],
     "host_permissions": [
         "https://www.youtube.com/*"
-    ]
+    ],
+    "commands": {
+        "playNext": {
+            "suggested_key": {
+                "default": "Ctrl+Right"
+            },
+            "description": "Play next video"
+        }
+    }
 }
