@@ -66,6 +66,7 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
     if (changeInfo.audible === true && state.attached_listener === false) {
         state.attached_listener = true;
         disableAutoplay(state.youtubeTabID);
+        ensureFullscreen(state.youtubeTabID);
         getRandomRecommendation(state.youtubeTabID).then(
             (video_url: string) => {
                 let next_video_url = video_url;
@@ -216,6 +217,19 @@ async function disableAutoplay(tab_id: number) {
                 if (autoplay_enabled) {
                     autoplay_button.click();
                 }
+            }
+    });
+}
+
+async function ensureFullscreen(tab_id: number) {
+    await chrome.scripting.executeScript({
+        target: { tabId: tab_id },
+        func:
+            () => {
+                console.log(`AutoMix; Ensuring fullscreen`);
+
+                const video = document.querySelectorAll('video')[0];
+                video.requestFullscreen();
             }
     });
 }
