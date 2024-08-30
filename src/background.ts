@@ -66,7 +66,7 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
     if (changeInfo.audible === true && state.attached_listener === false) {
         state.attached_listener = true;
         disableAutoplay(state.youtubeTabID);
-        ensureFullscreen(state.youtubeTabID);
+        ensureTheatreMode(state.youtubeTabID);
         getRandomRecommendation(state.youtubeTabID).then(
             (video_url: string) => {
                 let next_video_url = video_url;
@@ -221,15 +221,20 @@ async function disableAutoplay(tab_id: number) {
     });
 }
 
-async function ensureFullscreen(tab_id: number) {
+async function ensureTheatreMode(tab_id: number) {
     await chrome.scripting.executeScript({
         target: { tabId: tab_id },
         func:
             () => {
-                console.log(`AutoMix; Ensuring fullscreen`);
+                console.log(`AutoMix; Ensuring theatre mode`);
+                const ytd_watch_attributes = [...document.getElementsByTagName('ytd-watch-flexy')[0].attributes];
 
-                const video = document.querySelectorAll('video')[0];
-                video.requestFullscreen();
+                const theatre_attribute = ytd_watch_attributes.find((a) => a.name === 'theatre' || a.name === 'theater-requested_');
+                if (theatre_attribute === undefined) {
+                    const ytp_right_controls = document.getElementsByClassName('ytp-right-controls')[0];
+                    const theatre_button = ytp_right_controls.childNodes[6] as HTMLElement;
+                    theatre_button.click();
+                }
             }
     });
 }
