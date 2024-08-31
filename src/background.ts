@@ -2,6 +2,7 @@ interface AutoMixState {
     youtubeTabID: number | undefined,
     playedVideos: string[],
     attached_listener: boolean,
+    ensureTheatreMode: boolean,
 }
 
 console.log(`AutoMix; start => ${Date.now()}`);
@@ -17,12 +18,14 @@ chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
                 console.log(`AutoMix; Clearing old state => `);
                 console.log(state);
                 clearAutoMixState();
+                const ensureTheatreMode = state.ensureTheatreMode;
                 state = await getAutoMixState();
+                state.ensureTheatreMode = ensureTheatreMode;
+                await setAutoMixState(state);
             }
         }
 
         if (url.startsWith("https://www.youtube.com/") && state.youtubeTabID === undefined) {
-
             state.youtubeTabID = tab.id;
             await setAutoMixState(state);
             console.log(`AutoMix; YouTubeTabID => ${state.youtubeTabID}`);
@@ -66,7 +69,9 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
     if (changeInfo.audible === true && state.attached_listener === false) {
         state.attached_listener = true;
         disableAutoplay(state.youtubeTabID);
-        ensureTheatreMode(state.youtubeTabID);
+        if (state.ensureTheatreMode) {
+            ensureTheatreMode(state.youtubeTabID);
+        }
         getRandomRecommendation(state.youtubeTabID).then(
             (video_url: string) => {
                 let next_video_url = video_url;
@@ -109,6 +114,10 @@ chrome.commands.onCommand.addListener(async (command: string) => {
                     video.currentTime = video.duration - 1;
                 }
         })
+    }
+    if (command == "toggleTheatreMode") {
+        state.ensureTheatreMode = !state.ensureTheatreMode;
+        await setAutoMixState(state);
     }
 });
 
@@ -260,6 +269,7 @@ async function getAutoMixState(): Promise<AutoMixState> {
             youtubeTabID: undefined,
             playedVideos: [],
             attached_listener: false,
+            ensureTheatreMode: false
         }
     }
 

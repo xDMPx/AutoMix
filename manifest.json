@@ -17,6 +17,12 @@
                 "default": "Ctrl+Right"
             },
             "description": "Play next video"
+        },
+        "toggleTheatreMode": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+T"
+            },
+            "description": "Toggle theatre mode enforcement"
         }
     }
 }
