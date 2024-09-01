@@ -4,7 +4,7 @@
   "description": "AutoMix Chrome Extension",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc && cp ./manifest.json ./dist/manifest.json"
+    "build": "npx tsc && cp ./manifest.json ./src/index.html ./dist/"
   },
   "author": "xDMPx",
   "license": "MIT",

@@ -88,6 +88,10 @@ interface Message {
     next_video_url: string,
 }
 
+interface PopupMessage {
+    ensureTheatreMode: boolean
+}
+
 chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse) => {
     const state = await getAutoMixState();
     if (state.youtubeTabID === undefined || state.attached_listener === false) return;
@@ -117,6 +121,8 @@ chrome.commands.onCommand.addListener(async (command: string) => {
     }
     if (command == "toggleTheatreMode") {
         state.ensureTheatreMode = !state.ensureTheatreMode;
+        const msg: PopupMessage = { ensureTheatreMode: state.ensureTheatreMode };
+        await chrome.runtime.sendMessage(msg).catch((_e) => { });
         await setAutoMixState(state);
     }
 });

@@ -6,7 +6,9 @@
     "background": {
         "service_worker": "background.js"
     },
-    "action": {},
+    "action": {
+        "default_popup": "index.html"
+    },
     "permissions": ["scripting", "storage"],
     "host_permissions": [
         "https://www.youtube.com/*"
@@ -20,7 +22,7 @@
         },
         "toggleTheatreMode": {
             "suggested_key": {
-                "default": "Ctrl+Shift+T"
+                "default": "Ctrl+Shift+Y"
             },
             "description": "Toggle theatre mode enforcement"
         }
