@@ -1,10 +1,3 @@
-interface AutoMixState {
-    youtubeTabID: number | undefined,
-    playedVideos: string[],
-    attached_listener: boolean,
-    ensureTheatreMode: boolean,
-}
-
 console.log(`AutoMix; start => ${Date.now()}`);
 
 chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
@@ -82,15 +75,6 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
     }
 
 })
-
-interface Message {
-    ended: boolean | undefined,
-    next_video_url: string,
-}
-
-interface PopupMessage {
-    ensureTheatreMode: boolean
-}
 
 chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse) => {
     const state = await getAutoMixState();

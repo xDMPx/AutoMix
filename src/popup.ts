@@ -1,14 +1,3 @@
-interface AutoMixState {
-    youtubeTabID: number | undefined,
-    playedVideos: string[],
-    attached_listener: boolean,
-    ensureTheatreMode: boolean,
-}
-
-interface PopupMessage {
-    ensureTheatreMode: boolean
-}
-
 async function getEnsureTheatreModeValue(): Promise<boolean> {
     let { state }: { [key: string]: AutoMixState | undefined } = await chrome.storage.local.get("state");
     console.log(state);
@@ -31,5 +20,6 @@ getEnsureTheatreModeValue().then(
 
 chrome.runtime.onMessage.addListener(async (msg: PopupMessage, _sender, _sendResponse) => {
     console.log(`AutoMixPopup; Message => `);
+    console.log(msg);
     ensureTheatreModeCheckbox.checked = msg.ensureTheatreMode;
 });
