@@ -13,3 +13,8 @@ interface Message {
 interface PopupMessage {
     ensureTheatreMode: boolean
 }
+
+interface VideoPlayer extends Element {
+    getAvailableQualityLevels: () => string[]
+    setPlaybackQualityRange: (quality: string) => void
+}

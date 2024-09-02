@@ -61,6 +61,7 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
 
     if (changeInfo.audible === true && state.attached_listener === false) {
         state.attached_listener = true;
+        await ensureHighestQuality(state.youtubeTabID);
         disableAutoplay(state.youtubeTabID);
         if (state.ensureTheatreMode) {
             ensureTheatreMode(state.youtubeTabID);
@@ -235,6 +236,24 @@ async function ensureTheatreMode(tab_id: number) {
                     theatre_button.click();
                 }
             }
+    });
+}
+
+async function ensureHighestQuality(tab_id: number) {
+    await chrome.scripting.executeScript({
+        target: { tabId: tab_id },
+        world: "MAIN",
+        func:
+            () => {
+                console.log(`AutoMix; Ensuring highest quality`);
+                const player = document.querySelectorAll('.html5-video-player')[0] as VideoPlayer;
+                const quality_levels = player.getAvailableQualityLevels();
+                const highest_quality = quality_levels[0];
+                console.log(`AutoMix; highest quality ${highest_quality}`);
+                const highest2_quality = quality_levels[1];
+                player.setPlaybackQualityRange(highest2_quality);
+                player.setPlaybackQualityRange(highest_quality);
+            },
     });
 }
 
