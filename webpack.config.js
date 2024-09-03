@@ -7,15 +7,22 @@ module.exports = {
     },
     module: {
         rules: [
+            // all files with a `.ts`, `.cts`, `.mts` or `.tsx` extension will be handled by `ts-loader`
             {
-                test: /\.tsx?$/,
-                use: 'ts-loader',
+                test: /\.([cm]?ts|tsx)$/,
+                loader: "ts-loader",
                 exclude: /node_modules/,
-            },
+            }
         ],
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
+        // Add support for TypeScripts fully qualified ESM imports.
+        extensionAlias: {
+            ".js": [".js", ".ts"],
+            ".cjs": [".cjs", ".cts"],
+            ".mjs": [".mjs", ".mts"]
+        }
     },
     output: {
         filename: '[name].js',
