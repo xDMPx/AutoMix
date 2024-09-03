@@ -1,15 +1,7 @@
-async function getEnsureTheatreModeValue(): Promise<boolean> {
-    let { state }: { [key: string]: AutoMixState | undefined } = await chrome.storage.local.get("state");
-    console.log(state);
-    if (state == undefined) {
-        state = {
-            youtubeTabID: undefined,
-            playedVideos: [],
-            attached_listener: false,
-            ensureTheatreMode: false
-        }
-    }
+import { getAutoMixState } from "./utils.mjs";
 
+async function getEnsureTheatreModeValue(): Promise<boolean> {
+    const state = await getAutoMixState();
     return state.ensureTheatreMode;
 }
 
