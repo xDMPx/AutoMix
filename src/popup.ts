@@ -1,4 +1,4 @@
-import { getAutoMixState } from "./utils.mjs";
+import { getAutoMixState, setAutoMixState } from "./utils.mjs";
 
 async function getEnsureTheatreModeValue(): Promise<boolean> {
     const state = await getAutoMixState();
@@ -15,3 +15,15 @@ chrome.runtime.onMessage.addListener(async (msg: PopupMessage, _sender, _sendRes
     console.log(msg);
     ensureTheatreModeCheckbox.checked = msg.ensureTheatreMode;
 });
+
+async function clearPlayedVideos() {
+    console.log(`AutoMixPopup; Clearing played videos`);
+    const state = await getAutoMixState();
+    state.playedVideos = [];
+    await setAutoMixState(state);
+}
+
+(() => {
+    const button = document.getElementById("clear-played-button");
+    button?.addEventListener("click", clearPlayedVideos);
+})()
