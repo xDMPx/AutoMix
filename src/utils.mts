@@ -5,7 +5,8 @@ export async function getAutoMixState(): Promise<AutoMixState> {
             youtubeTabID: undefined,
             playedVideos: [],
             attached_listener: false,
-            ensureTheatreMode: false
+            ensureTheatreMode: false,
+            nextVideoId: null,
         }
     }
 

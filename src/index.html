@@ -3,9 +3,23 @@
     <title>AutoMix Popup</title>
 </head>
     <body>
-        <label for="ensureTheatreMode">Ensure Theatre Mode</label><br>
-        <input type="checkbox" name="ensureTheatreMode" id="ensureTheatreMode" disabled>
+        <div>Next:<br> 
+            <div id="next-video-id"></div>
+        </div>
+        <div>
+            <label for="ensureTheatreMode">Ensure Theatre Mode:</label>
+            <input type="checkbox" name="ensureTheatreMode" id="ensureTheatreMode" disabled>
+        </div>
         <button type="button" id="clear-played-button">Clear played videos</button> 
-        <script src="popup.js"></script>
     </body>
+    <script src="popup.js"></script>
 </html>
+
+<style>
+html { 
+    min-width: 300px; 
+}
+body {
+    display: table;
+}
+</style>

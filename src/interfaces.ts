@@ -3,6 +3,7 @@ interface AutoMixState {
     playedVideos: string[],
     attached_listener: boolean,
     ensureTheatreMode: boolean,
+    nextVideoId: string | null,
 }
 
 interface Message {
@@ -11,7 +12,7 @@ interface Message {
 }
 
 interface PopupMessage {
-    ensureTheatreMode: boolean
+    ensureTheatreMode: boolean,
 }
 
 interface VideoPlayer extends Element {

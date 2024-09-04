@@ -33,6 +33,7 @@ chrome.tabs.onRemoved.addListener(async (tabId: number) => {
     if (tabId === state.youtubeTabID) {
         state.youtubeTabID = undefined;
         state.attached_listener = false;
+        state.nextVideoId = null;
         await setAutoMixState(state);
         console.log(`AutoMix; YouTubeTabID => ${state.youtubeTabID}`);
         console.log(state.playedVideos);
@@ -69,10 +70,12 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
             ensureTheatreMode(state.youtubeTabID);
         }
         getRandomRecommendation(state.youtubeTabID).then(
-            (video_url: string) => {
+            async (video_url: string) => {
                 let next_video_url = video_url;
                 console.log(`AutoMix; next_video_url => ${next_video_url}`);
-                attachVideoEndedListener(state.youtubeTabID as number, next_video_url);
+                state.nextVideoId = extractVideoId(next_video_url)!;
+                await setAutoMixState(state);
+                await attachVideoEndedListener(state.youtubeTabID as number, next_video_url);
             });
         await setAutoMixState(state);
     }

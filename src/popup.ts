@@ -13,7 +13,7 @@ getEnsureTheatreModeValue().then(
 chrome.runtime.onMessage.addListener(async (msg: PopupMessage, _sender, _sendResponse) => {
     console.log(`AutoMixPopup; Message => `);
     console.log(msg);
-    ensureTheatreModeCheckbox.checked = msg.ensureTheatreMode;
+    if (msg.ensureTheatreMode !== undefined) ensureTheatreModeCheckbox.checked = msg.ensureTheatreMode;
 });
 
 async function clearPlayedVideos() {
@@ -26,4 +26,12 @@ async function clearPlayedVideos() {
 (() => {
     const button = document.getElementById("clear-played-button");
     button?.addEventListener("click", clearPlayedVideos);
+
+    const nextVideoIdDiv = document.getElementById("next-video-id");
+    if (nextVideoIdDiv !== null) {
+        getAutoMixState().then((s) => {
+            nextVideoIdDiv.innerText = s.nextVideoId !== null ? s.nextVideoId : "";
+        })
+    }
+
 })()
