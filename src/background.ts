@@ -54,7 +54,7 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
     if (changeInfo.url != undefined) {
         const url = changeInfo.url;
         const video_id = extractVideoId(url);
-        if (video_id !== undefined) {
+        if (video_id !== undefined && !state.playedVideos.includes(video_id)) {
             state.playedVideos.push(video_id);
             await setAutoMixState(state);
         }
