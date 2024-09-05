@@ -4,12 +4,13 @@
   "description": "AutoMix Chrome Extension",
   "main": "index.js",
   "scripts": {
-    "build": "webpack && cp ./manifest.json ./src/index.html ./dist/"
+    "build": "webpack"
   },
   "author": "xDMPx",
   "license": "MIT",
   "devDependencies": {
     "@types/chrome": "^0.0.270",
+    "copy-webpack-plugin": "^12.0.2",
     "ts-loader": "^9.5.1",
     "typescript": "^5.5.4",
     "webpack": "^5.94.0",
