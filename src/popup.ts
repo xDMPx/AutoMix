@@ -27,10 +27,11 @@ async function clearPlayedVideos() {
     const button = document.getElementById("clear-played-button");
     button?.addEventListener("click", clearPlayedVideos);
 
-    const nextVideoIdDiv = document.getElementById("next-video-id");
-    if (nextVideoIdDiv !== null) {
+    const nextVideoIdA = document.getElementById("next-video-id") as HTMLAnchorElement | null;
+    if (nextVideoIdA !== null) {
         getAutoMixState().then((s) => {
-            nextVideoIdDiv.innerText = s.nextVideoId !== null ? s.nextVideoId : "";
+            nextVideoIdA.innerText = s.nextVideoId !== null ? s.nextVideoId : "";
+            nextVideoIdA.href = `https://www.youtube.com/watch?v=${s.nextVideoId}`;
         })
     }
 
