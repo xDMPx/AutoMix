@@ -1,5 +1,11 @@
-import { getAutoMixState, setAutoMixState } from "./utils.mjs";
+import { createApp } from 'vue'
 
+import App from './App.vue'
+
+createApp(App).mount('#app')
+
+
+import { getAutoMixState, setAutoMixState } from "./utils.mjs";
 async function getEnsureTheatreModeValue(): Promise<boolean> {
     const state = await getAutoMixState();
     return state.ensureTheatreMode;
