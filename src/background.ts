@@ -13,9 +13,9 @@ chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
                 console.log(`AutoMix; Clearing old state => `);
                 console.log(state);
                 clearAutoMixState();
-                const ensureTheatreMode = state.ensureTheatreMode;
+                const ensure_theatre_mode = state.ensureTheatreMode;
                 state = await getAutoMixState();
-                state.ensureTheatreMode = ensureTheatreMode;
+                state.ensureTheatreMode = ensure_theatre_mode;
                 await setAutoMixState(state);
             }
         }
@@ -32,7 +32,7 @@ chrome.tabs.onRemoved.addListener(async (tabId: number) => {
     const state = await getAutoMixState();
     if (tabId === state.youtubeTabID) {
         state.youtubeTabID = undefined;
-        state.attached_listener = false;
+        state.attachedListener = false;
         state.nextVideoId = null;
         state.nextVideoTitle = null;
         await setAutoMixState(state);
@@ -63,8 +63,8 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
         console.log(`AutoMix; URL: ${url} => ${video_id}`);
     }
 
-    if (changeInfo.audible === true && state.attached_listener === false) {
-        state.attached_listener = true;
+    if (changeInfo.audible === true && state.attachedListener === false) {
+        state.attachedListener = true;
         await ensureHighestQuality(state.youtubeTabID);
         disableAutoplay(state.youtubeTabID);
         if (state.ensureTheatreMode) {
@@ -87,19 +87,19 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
 
 chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse) => {
     const state = await getAutoMixState();
-    if (state.youtubeTabID === undefined || state.attached_listener === false) return;
+    if (state.youtubeTabID === undefined || state.attachedListener === false) return;
     console.log(`AutoMix; Message => `);
     console.log(msg);
     if (msg.ended === true) {
         console.log(`AutoMix; ended`);
-        navigateToNextVideo(state.youtubeTabID, msg.next_video_url);
+        navigateToNextVideo(state.youtubeTabID, msg.nextVideoUrl);
     }
 });
 
 
 chrome.commands.onCommand.addListener(async (command: string) => {
     const state = await getAutoMixState();
-    if (state.youtubeTabID === undefined || state.attached_listener === false) return;
+    if (state.youtubeTabID === undefined || state.attachedListener === false) return;
 
     console.log(`AutoMix; Command => ${command}`);
     if (command == "playNext") {
@@ -120,30 +120,30 @@ chrome.commands.onCommand.addListener(async (command: string) => {
     }
 });
 
-async function attachVideoEndedListener(tab_id: number, next_video_url: string) {
+async function attachVideoEndedListener(tabID: number, nextVideoUrl: string) {
     console.log(`AutoMix; Ataching ended event listener`);
     await chrome.scripting.executeScript({
-        target: { tabId: tab_id },
+        target: { tabId: tabID },
         func:
-            (next_video_url: string) => {
+            (nextVideoUrl: string) => {
                 const video = document.querySelectorAll('video')[0];
 
-                console.log(`AutoMix; Ataching ended event listener => ${next_video_url}`);
+                console.log(`AutoMix; Ataching ended event listener => ${nextVideoUrl}`);
                 video.addEventListener("ended",
                     (e: Event) => {
                         console.log(`AutoMix; ${e}`);
-                        const msg: Message = { ended: true, next_video_url };
+                        const msg: Message = { ended: true, nextVideoUrl: nextVideoUrl };
                         chrome.runtime.sendMessage(msg);
                     });
 
             },
-        args: [next_video_url]
+        args: [nextVideoUrl]
     });
 }
 
-async function getRandomRecommendation(tab_id: number): Promise<{ url: string, title: string }> {
+async function getRandomRecommendation(tabID: number): Promise<{ url: string, title: string }> {
     const res = await chrome.scripting.executeScript({
-        target: { tabId: tab_id },
+        target: { tabId: tabID },
         func:
             () => {
                 const elements = document.getElementsByTagName("ytd-compact-video-renderer") as HTMLCollectionOf<HTMLElement>;
@@ -153,8 +153,8 @@ async function getRandomRecommendation(tab_id: number): Promise<{ url: string, t
                     return undefined;
                 }
 
-                const elementsArray = [...elements];
-                const recommendations = elementsArray.map(
+                const elements_array = [...elements];
+                const recommendations = elements_array.map(
                     (element) => {
                         const video_url = element.getElementsByTagName("a").item(0)?.href;
                         const video_title = [...element.getElementsByTagName("span")].find((e) => e.id === "video-title")?.innerText;
@@ -201,22 +201,22 @@ async function getRandomRecommendation(tab_id: number): Promise<{ url: string, t
 
         return { url: video_url, title: video_title };
     } else {
-        return await getRandomRecommendation(tab_id);
+        return await getRandomRecommendation(tabID);
     }
 }
 
-async function navigateToNextVideo(tab_id: number, next_video_url: string) {
-    console.log(`AutoMix; Navigating to next video => ${next_video_url}`);
-    setTimeout(() => chrome.tabs.update(tab_id, { url: next_video_url }), 2500);
+async function navigateToNextVideo(tabID: number, nextVideoUrl: string) {
+    console.log(`AutoMix; Navigating to next video => ${nextVideoUrl}`);
+    setTimeout(() => chrome.tabs.update(tabID, { url: nextVideoUrl }), 2500);
 
     const state = await getAutoMixState();
-    state.attached_listener = false;
+    state.attachedListener = false;
     await setAutoMixState(state);
 }
 
-async function disableAutoplay(tab_id: number) {
+async function disableAutoplay(tabID: number) {
     await chrome.scripting.executeScript({
-        target: { tabId: tab_id },
+        target: { tabId: tabID },
         func:
             () => {
                 console.log(`AutoMix; Disabling autoplay`);
@@ -231,9 +231,9 @@ async function disableAutoplay(tab_id: number) {
     });
 }
 
-async function ensureTheatreMode(tab_id: number) {
+async function ensureTheatreMode(tabID: number) {
     await chrome.scripting.executeScript({
-        target: { tabId: tab_id },
+        target: { tabId: tabID },
         func:
             () => {
                 console.log(`AutoMix; Ensuring theatre mode`);
@@ -249,9 +249,9 @@ async function ensureTheatreMode(tab_id: number) {
     });
 }
 
-async function ensureHighestQuality(tab_id: number) {
+async function ensureHighestQuality(tabID: number) {
     await chrome.scripting.executeScript({
-        target: { tabId: tab_id },
+        target: { tabId: tabID },
         world: "MAIN",
         func:
             () => {
