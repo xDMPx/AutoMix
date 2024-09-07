@@ -4,6 +4,7 @@ interface AutoMixState {
     attached_listener: boolean,
     ensureTheatreMode: boolean,
     nextVideoId: string | null,
+    nextVideoTitle: string | null,
 }
 
 interface Message {

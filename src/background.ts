@@ -34,6 +34,7 @@ chrome.tabs.onRemoved.addListener(async (tabId: number) => {
         state.youtubeTabID = undefined;
         state.attached_listener = false;
         state.nextVideoId = null;
+        state.nextVideoTitle = null;
         await setAutoMixState(state);
         console.log(`AutoMix; YouTubeTabID => ${state.youtubeTabID}`);
         console.log(state.playedVideos);
@@ -70,12 +71,14 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
             ensureTheatreMode(state.youtubeTabID);
         }
         getRandomRecommendation(state.youtubeTabID).then(
-            async (video_url: string) => {
-                let next_video_url = video_url;
-                console.log(`AutoMix; next_video_url => ${next_video_url}`);
-                state.nextVideoId = extractVideoId(next_video_url)!;
+            async (data) => {
+                const video_url = data.url;
+                const video_title = data.title;
+                console.log(`AutoMix; next_video => ${video_title} : ${video_url}`);
+                state.nextVideoId = extractVideoId(video_url)!;
+                state.nextVideoTitle = video_title;
                 await setAutoMixState(state);
-                await attachVideoEndedListener(state.youtubeTabID as number, next_video_url);
+                await attachVideoEndedListener(state.youtubeTabID as number, video_url);
             });
         await setAutoMixState(state);
     }
@@ -138,12 +141,12 @@ async function attachVideoEndedListener(tab_id: number, next_video_url: string) 
     });
 }
 
-async function getRandomRecommendation(tab_id: number): Promise<string> {
+async function getRandomRecommendation(tab_id: number): Promise<{ url: string, title: string }> {
     const res = await chrome.scripting.executeScript({
         target: { tabId: tab_id },
         func:
             () => {
-                const elements = document.getElementsByTagName("ytd-compact-video-renderer");
+                const elements = document.getElementsByTagName("ytd-compact-video-renderer") as HTMLCollectionOf<HTMLElement>;
                 console.log(`AutoMix; elements =>`);
                 console.log(elements);
                 if (elements.length === 0) {
@@ -154,11 +157,12 @@ async function getRandomRecommendation(tab_id: number): Promise<string> {
                 const recommendations = elementsArray.map(
                     (element) => {
                         const video_url = element.getElementsByTagName("a").item(0)?.href;
+                        const video_title = [...element.getElementsByTagName("span")].find((e) => e.id === "video-title")?.innerText;
                         const duration = element.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
-                        if (video_url === undefined || duration === undefined) {
+                        if (video_url === undefined || duration === undefined || video_title === undefined) {
                             return undefined;
                         }
-                        return { video_url, duration };
+                        return { video_url, video_title, duration };
                     }).filter((recommendation) => recommendation !== undefined);
 
                 if (recommendations.length === 0) {
@@ -193,8 +197,9 @@ async function getRandomRecommendation(tab_id: number): Promise<string> {
         const i = Math.floor(Math.random() * valid_recommendations.length);
         const recommendation = valid_recommendations[i];
         const video_url = recommendation.video_url;
+        const video_title = recommendation.video_title;
 
-        return video_url;
+        return { url: video_url, title: video_title };
     } else {
         return await getRandomRecommendation(tab_id);
     }

@@ -4,6 +4,7 @@ import { getAutoMixState, setAutoMixState } from "./utils.mjs";
 
 const ensureTheatreMode = ref(false);
 const nextVideoId = ref("");
+const nextVideoTitle = ref("");
 
 async function clearPlayedVideos() {
     console.log(`AutoMixPopup; Clearing played videos`);
@@ -26,19 +27,20 @@ chrome.runtime.onMessage.addListener(async (msg: PopupMessage, _sender, _sendRes
 
 onMounted(() => {
     getEnsureTheatreModeValue().then(
-        (checked) => { ensureTheatreMode.value = checked; console.log(`vue ${checked}`); }
-
+        (checked) => ensureTheatreMode.value = checked
     );
     getAutoMixState().then(
-        (s) => nextVideoId.value = (s.nextVideoId) ? s.nextVideoId : ""
+        (s) => {
+            nextVideoId.value = (s.nextVideoId) ? s.nextVideoId : "";
+            nextVideoTitle.value = (s.nextVideoTitle) ? s.nextVideoTitle : "";
+        }
     );
 });
 </script>
 
-
 <template>
     <div>Next:<br>
-        <a id="next-video-id" :href="`https://www.youtube.com/watch?v=${nextVideoId}`">{{ nextVideoId}}</a>
+        <a id="next-video-id" :href="`https://www.youtube.com/watch?v=${nextVideoId}`">{{ nextVideoTitle }}</a>
     </div>
     <div>
         <label for="ensureTheatreMode">Ensure Theatre Mode:</label>
