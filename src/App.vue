@@ -1,22 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getAutoMixState, setAutoMixState } from "./utils.mjs";
+import { getAutoMixState } from "./utils.mjs";
+import { getEnsureTheatreModeValue, clearPlayedVideos } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
 const nextVideoId = ref("");
 const nextVideoTitle = ref("");
-
-async function clearPlayedVideos() {
-    console.log(`AutoMixPopup; Clearing played videos`);
-    const state = await getAutoMixState();
-    state.playedVideos = [];
-    await setAutoMixState(state);
-}
-
-async function getEnsureTheatreModeValue(): Promise<boolean> {
-    const state = await getAutoMixState();
-    return state.ensureTheatreMode;
-}
 
 chrome.runtime.onMessage.addListener(async (msg: PopupMessage, _sender, _sendResponse) => {
     console.log(`AutoMixPopup; Vue Message => `);
