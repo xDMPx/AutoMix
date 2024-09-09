@@ -39,14 +39,16 @@ onMounted(() => {
 </script>
 
 <template>
-    <div>Next:<br>
-        <a id="next-video-id" :href="`https://www.youtube.com/watch?v=${nextVideoId}`">{{ nextVideoTitle }}</a>
+    <div class="w-full h-full table p-2">
+        <div>Next:<br>
+            <a id="next-video-id" :href="`https://www.youtube.com/watch?v=${nextVideoId}`">{{ nextVideoTitle }}</a>
+        </div>
+        <div>
+            <label for="ensureTheatreMode">Ensure Theatre Mode:</label>
+            <input type="checkbox" name="ensureTheatreMode" id="ensureTheatreMode" v-model="ensureTheatreMode" disabled>
+        </div>
+        <button type="button" @click="clearPlayedVideos" id="clear-played-button">Clear played videos</button>
     </div>
-    <div>
-        <label for="ensureTheatreMode">Ensure Theatre Mode:</label>
-        <input type="checkbox" name="ensureTheatreMode" id="ensureTheatreMode" v-model="ensureTheatreMode" disabled>
-    </div>
-    <button type="button" @click="clearPlayedVideos" id="clear-played-button">Clear played videos</button>
 </template>
 
 <script lang="ts">
