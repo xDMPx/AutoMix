@@ -41,13 +41,18 @@ onMounted(() => {
 <template>
     <div class="w-full h-full table p-2">
         <div>Next:<br>
-            <a id="next-video-id" :href="`https://www.youtube.com/watch?v=${nextVideoId}`">{{ nextVideoTitle }}</a>
+            <a class="link link-secondary" :href="`https://www.youtube.com/watch?v=${nextVideoId}`">
+                {{ nextVideoTitle }}
+            </a>
         </div>
-        <div>
-            <label for="ensureTheatreMode">Ensure Theatre Mode:</label>
-            <input type="checkbox" name="ensureTheatreMode" id="ensureTheatreMode" v-model="ensureTheatreMode" disabled>
+        <div class="divider" />
+        <div class="form-control">
+            <label class="label cursor-pointer mr-auto">
+                <span class="label-text pr-2">Ensure Theatre Mode:</span>
+                <input class="checkbox" name="ensureTheatreMode" type="checkbox" disabled checked="true" />
+            </label>
         </div>
-        <button type="button" @click="clearPlayedVideos" id="clear-played-button">Clear played videos</button>
+        <button class="btn btn-sm btn-secondary" @click="clearPlayedVideos">Clear played videos</button>
     </div>
 </template>
 
