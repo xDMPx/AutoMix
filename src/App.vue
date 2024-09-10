@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getAutoMixState } from "./utils.mjs";
+import { getAutoMixState, setAutoMixState } from "./utils.mjs";
 import { getEnsureTheatreModeValue, clearPlayedVideos } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
@@ -13,6 +13,12 @@ chrome.runtime.onMessage.addListener(async (msg: PopupMessage, _sender, _sendRes
     if (msg.ensureTheatreMode !== undefined) ensureTheatreMode.value = msg.ensureTheatreMode;
 });
 
+async function toggleEnsureTheatreMode() {
+    const state = await getAutoMixState();
+    state.ensureTheatreMode = !state.ensureTheatreMode;
+    console.log(`AutoMixPopup; toggleEnsureTheatreMode => ${state.ensureTheatreMode}`);
+    await setAutoMixState(state);
+}
 
 onMounted(() => {
     getEnsureTheatreModeValue().then(
@@ -38,7 +44,8 @@ onMounted(() => {
         <div class="form-control">
             <label class="label cursor-pointer mr-auto">
                 <span class="label-text pr-2">Ensure Theatre Mode:</span>
-                <input class="checkbox" name="ensureTheatreMode" type="checkbox" disabled checked="true" />
+                <input class="checkbox" @click="toggleEnsureTheatreMode" v-model="ensureTheatreMode"
+                    name="ensureTheatreMode" type="checkbox" checked="true" />
             </label>
         </div>
         <button class="btn btn-sm btn-secondary" @click="clearPlayedVideos">Clear played videos</button>
