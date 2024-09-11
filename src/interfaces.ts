@@ -3,6 +3,7 @@ interface AutoMixState {
     playedVideos: string[],
     attachedListener: boolean,
     ensureTheatreMode: boolean,
+    ensureHighestQuality: boolean,
     nextVideoId: string | null,
     nextVideoTitle: string | null,
 }

@@ -6,6 +6,7 @@ export async function getAutoMixState(): Promise<AutoMixState> {
             playedVideos: [],
             attachedListener: false,
             ensureTheatreMode: false,
+            ensureHighestQuality: false,
             nextVideoId: null,
             nextVideoTitle: null,
         }

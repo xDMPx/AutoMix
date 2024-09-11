@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { getAutoMixState, setAutoMixState } from "./utils.mjs";
-import { getEnsureTheatreModeValue, clearPlayedVideos, videoIdIntoUrl, navigateToUrl } from "./popup_utils.mjs";
+import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, clearPlayedVideos, videoIdIntoUrl, navigateToUrl } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
+const ensureHighestQuality = ref(false);
 const nextVideoId = ref("");
 const nextVideoTitle = ref("");
 
@@ -20,9 +21,19 @@ async function toggleEnsureTheatreMode() {
     await setAutoMixState(state);
 }
 
+async function toggleEnsureHighestQuality() {
+    const state = await getAutoMixState();
+    state.ensureHighestQuality = !state.ensureHighestQuality;
+    console.log(`AutoMixPopup; ensureHighestQuality => ${state.ensureHighestQuality}`);
+    await setAutoMixState(state);
+}
+
 onMounted(() => {
     getEnsureTheatreModeValue().then(
         (checked) => ensureTheatreMode.value = checked
+    );
+    getEnsureHighestQualityValue().then(
+        (checked) => ensureHighestQuality.value = checked
     );
     getAutoMixState().then(
         (s) => {
@@ -41,12 +52,19 @@ onMounted(() => {
                 {{ nextVideoTitle }}
             </a>
         </div>
-        <div class=" divider" />
+        <div class="divider" />
         <div class="form-control">
             <label class="label cursor-pointer mr-auto">
                 <span class="label-text pr-2">Ensure Theatre Mode:</span>
                 <input class="checkbox" @click="toggleEnsureTheatreMode" v-model="ensureTheatreMode"
                     name="ensureTheatreMode" type="checkbox" checked="true" />
+            </label>
+        </div>
+        <div class="form-control">
+            <label class="label cursor-pointer mr-auto">
+                <span class="label-text pr-2">Ensure Highest Quality:</span>
+                <input class="checkbox" @click="toggleEnsureHighestQuality" v-model="ensureHighestQuality"
+                    name="ensureHighestQuality" type="checkbox" checked="true" />
             </label>
         </div>
         <button class="btn btn-sm btn-secondary" @click="clearPlayedVideos">Clear played videos</button>

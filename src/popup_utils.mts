@@ -12,6 +12,11 @@ export async function getEnsureTheatreModeValue(): Promise<boolean> {
     return state.ensureTheatreMode;
 }
 
+export async function getEnsureHighestQualityValue(): Promise<boolean> {
+    const state = await getAutoMixState();
+    return state.ensureHighestQuality;
+}
+
 export function videoIdIntoUrl(videoID: string): string {
     return `https://www.youtube.com/watch?v=${videoID}`;
 }

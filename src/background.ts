@@ -14,8 +14,10 @@ chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
                 console.log(state);
                 clearAutoMixState();
                 const ensure_theatre_mode = state.ensureTheatreMode;
+                const ensure_highest_quality = state.ensureHighestQuality;
                 state = await getAutoMixState();
                 state.ensureTheatreMode = ensure_theatre_mode;
+                state.ensureHighestQuality = ensure_highest_quality;
                 await setAutoMixState(state);
             }
         }
@@ -65,7 +67,9 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
 
     if (changeInfo.audible === true && state.attachedListener === false) {
         state.attachedListener = true;
-        await ensureHighestQuality(state.youtubeTabID);
+        if (state.ensureHighestQuality) {
+            await ensureHighestQuality(state.youtubeTabID);
+        }
         disableAutoplay(state.youtubeTabID);
         if (state.ensureTheatreMode) {
             ensureTheatreMode(state.youtubeTabID);
