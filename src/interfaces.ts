@@ -9,6 +9,11 @@ interface AutoMixState {
 }
 
 interface Message {
+    videoEndMessage: VideoEndMessage | undefined,
+    videoStartMessage: boolean | undefined,
+}
+
+interface VideoEndMessage {
     ended: boolean | undefined,
     nextVideoUrl: string,
 }

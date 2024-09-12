@@ -55,14 +55,32 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
 
     chrome.action.setBadgeText({ tabId: state.youtubeTabID, text: "ON" });
 
-    if (changeInfo.url != undefined) {
-        const url = changeInfo.url;
-        const video_id = extractVideoId(url);
-        if (video_id !== undefined && !state.playedVideos.includes(video_id)) {
-            state.playedVideos.push(video_id);
-            await setAutoMixState(state);
-        }
-        console.log(`AutoMix; URL: ${url} => ${video_id}`);
+    if (changeInfo.status === "loading" && changeInfo.url?.includes("v=")) {
+        console.log(`AutoMix; Wating for video`);
+        await chrome.scripting.executeScript({
+            target: { tabId: state.youtubeTabID },
+            func:
+                () => {
+                    if (!document.URL) return;
+                    const video_elements = document.querySelectorAll('video');
+                    if (video_elements.length > 0) {
+                        const msg: Message = { videoStartMessage: true, videoEndMessage: undefined };
+                        chrome.runtime.sendMessage(msg);
+                    } else {
+                        const config = { attributes: true, childList: true, subtree: true };
+                        const observer = new MutationObserver(() => {
+                            const video_elements = document.querySelectorAll('video');
+                            console.log(video_elements);
+                            if (video_elements.length > 0) {
+                                observer.disconnect();
+                                const msg: Message = { videoStartMessage: true, videoEndMessage: undefined };
+                                chrome.runtime.sendMessage(msg);
+                            }
+                        });
+                        observer.observe(document.body, config);
+                    }
+                },
+        });
     }
 
     if (changeInfo.audible === true && state.attachedListener === false) {
@@ -91,15 +109,21 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
 
 chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse) => {
     const state = await getAutoMixState();
-    if (state.youtubeTabID === undefined || state.attachedListener === false) return;
-    console.log(`AutoMix; Message => `);
-    console.log(msg);
-    if (msg.ended === true) {
-        console.log(`AutoMix; ended`);
-        navigateToNextVideo(state.youtubeTabID, msg.nextVideoUrl);
+    if (state.youtubeTabID === undefined) return;
+    if (msg.videoStartMessage) {
+        console.log(`AutoMix; Message => `);
+        console.log(msg.videoStartMessage);
+    }
+    if (state.attachedListener !== false && msg.videoEndMessage !== undefined) {
+        const video_end_message = msg.videoEndMessage;
+        console.log(`AutoMix; Message => `);
+        console.log(video_end_message);
+        if (video_end_message.ended === true) {
+            console.log(`AutoMix; ended`);
+            navigateToNextVideo(state.youtubeTabID, video_end_message.nextVideoUrl);
+        }
     }
 });
-
 
 chrome.commands.onCommand.addListener(async (command: string) => {
     const state = await getAutoMixState();
@@ -136,7 +160,7 @@ async function attachVideoEndedListener(tabID: number, nextVideoUrl: string) {
                 video.addEventListener("ended",
                     (e: Event) => {
                         console.log(`AutoMix; ${e}`);
-                        const msg: Message = { ended: true, nextVideoUrl: nextVideoUrl };
+                        const msg: Message = { videoEndMessage: { ended: true, nextVideoUrl: nextVideoUrl }, videoStartMessage: undefined };
                         chrome.runtime.sendMessage(msg);
                     });
 
