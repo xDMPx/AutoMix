@@ -70,7 +70,6 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
                         const config = { attributes: true, childList: true, subtree: true };
                         const observer = new MutationObserver(() => {
                             const video_elements = document.querySelectorAll('video');
-                            console.log(video_elements);
                             if (video_elements.length > 0) {
                                 observer.disconnect();
                                 const msg: Message = { videoStartMessage: true, videoEndMessage: undefined };
@@ -85,13 +84,6 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
 
     if (changeInfo.audible === true && state.attachedListener === false) {
         state.attachedListener = true;
-        if (state.ensureHighestQuality) {
-            await ensureHighestQuality(state.youtubeTabID);
-        }
-        disableAutoplay(state.youtubeTabID);
-        if (state.ensureTheatreMode) {
-            ensureTheatreMode(state.youtubeTabID);
-        }
         getRandomRecommendation(state.youtubeTabID).then(
             async (data) => {
                 const video_url = data.url;
@@ -111,8 +103,16 @@ chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse
     const state = await getAutoMixState();
     if (state.youtubeTabID === undefined) return;
     if (msg.videoStartMessage) {
-        console.log(`AutoMix; Message => `);
-        console.log(msg.videoStartMessage);
+        console.log(`AutoMix; Message => videoStartMessage`);
+
+        if (state.ensureHighestQuality) {
+            await ensureHighestQuality(state.youtubeTabID);
+        }
+        disableAutoplay(state.youtubeTabID);
+        if (state.ensureTheatreMode) {
+            ensureTheatreMode(state.youtubeTabID);
+        }
+
     }
     if (state.attachedListener !== false && msg.videoEndMessage !== undefined) {
         const video_end_message = msg.videoEndMessage;
