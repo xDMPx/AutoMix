@@ -27,6 +27,5 @@ export function videoIdIntoUrl(videoID: string): string {
 }
 
 export function navigateToUrl(url: string) {
-    const msg: Message = { ended: true, nextVideoUrl: url };
-    chrome.runtime.sendMessage(msg);
+    chrome.tabs.create({ url: url });
 }
