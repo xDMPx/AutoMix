@@ -7,6 +7,11 @@ export async function clearPlayedVideos() {
     await setAutoMixState(state);
 }
 
+export async function getPlayedVideosCount(): Promise<number> {
+    const state = await getAutoMixState();
+    return state.playedVideos.length;
+}
+
 export async function getEnsureTheatreModeValue(): Promise<boolean> {
     const state = await getAutoMixState();
     return state.ensureTheatreMode;

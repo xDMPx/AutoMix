@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { getAutoMixState, setAutoMixState } from "./utils.mjs";
-import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, clearPlayedVideos, videoIdIntoUrl, navigateToUrl } from "./popup_utils.mjs";
+import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, videoIdIntoUrl, navigateToUrl } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
 const ensureHighestQuality = ref(false);
 const nextVideoId = ref("");
 const nextVideoTitle = ref("");
+const playedVideosCount = ref(0);
 
 chrome.runtime.onMessage.addListener(async (msg: PopupMessage, _sender, _sendResponse) => {
     console.log(`AutoMixPopup; Vue Message => `);
@@ -28,6 +29,11 @@ async function toggleEnsureHighestQuality() {
     await setAutoMixState(state);
 }
 
+async function onClearPlayedVideosClick() {
+    await clearPlayedVideos();
+    playedVideosCount.value = await getPlayedVideosCount();
+}
+
 onMounted(() => {
     getEnsureTheatreModeValue().then(
         (checked) => ensureTheatreMode.value = checked
@@ -35,6 +41,9 @@ onMounted(() => {
     getEnsureHighestQualityValue().then(
         (checked) => ensureHighestQuality.value = checked
     );
+    getPlayedVideosCount().then(
+        count => playedVideosCount.value = count
+    )
     getAutoMixState().then(
         (s) => {
             nextVideoId.value = (s.nextVideoId) ? s.nextVideoId : "";
@@ -67,7 +76,9 @@ onMounted(() => {
                     name="ensureHighestQuality" type="checkbox" checked="true" />
             </label>
         </div>
-        <button class="btn btn-sm btn-secondary" @click="clearPlayedVideos">Clear played videos</button>
+        <div class="divider" />
+        <button class="btn btn-sm btn-secondary" @click="onClearPlayedVideosClick">Clear played videos</button>
+        <span class="pl-2"> ({{ playedVideosCount }}) </span>
     </div>
 </template>
 
