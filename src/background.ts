@@ -66,30 +66,8 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
     }
 
     if (changeInfo.status === "loading" && changeInfo.url?.includes("v=")) {
-        console.log(`AutoMix; Wating for video`);
-        await chrome.scripting.executeScript({
-            target: { tabId: state.youtubeTabID },
-            func:
-                () => {
-                    if (!document.URL) return;
-                    const video_elements = document.querySelectorAll('video');
-                    if (video_elements.length > 0) {
-                        const msg: Message = { videoStartMessage: true, videoEndMessage: undefined };
-                        chrome.runtime.sendMessage(msg);
-                    } else {
-                        const config = { attributes: true, childList: true, subtree: true };
-                        const observer = new MutationObserver(() => {
-                            const video_elements = document.querySelectorAll('video');
-                            if (video_elements.length > 0) {
-                                observer.disconnect();
-                                const msg: Message = { videoStartMessage: true, videoEndMessage: undefined };
-                                chrome.runtime.sendMessage(msg);
-                            }
-                        });
-                        observer.observe(document.body, config);
-                    }
-                },
-        });
+        console.log(`AutoMix; Wating for video to load`);
+        await attachVideoLoadedObserver(state.youtubeTabID);
     }
 
     if (changeInfo.audible === true && state.attachedListener === false) {
@@ -301,6 +279,35 @@ async function ensureHighestQuality(tabID: number) {
                 const highest2_quality = quality_levels[1];
                 player.setPlaybackQualityRange(highest2_quality);
                 player.setPlaybackQualityRange(highest_quality);
+            },
+    });
+}
+
+async function attachVideoLoadedObserver(tabID: number) {
+    await chrome.scripting.executeScript({
+        target: { tabId: tabID },
+        func:
+            () => {
+                if (!document.URL) return;
+
+                console.log(`AutoMix; Ataching video loaded observer`);
+                const video_elements = document.querySelectorAll('video');
+                if (video_elements.length > 0) {
+                    const msg: Message = { videoStartMessage: true, videoEndMessage: undefined };
+                    chrome.runtime.sendMessage(msg);
+                } else {
+                    const config = { attributes: true, childList: true, subtree: true };
+                    const observer = new MutationObserver(() => {
+                        const video_elements = document.querySelectorAll('video');
+                        if (video_elements.length > 0) {
+                            observer.disconnect();
+                            console.log(`AutoMix; Video loaded`);
+                            const msg: Message = { videoStartMessage: true, videoEndMessage: undefined };
+                            chrome.runtime.sendMessage(msg);
+                        }
+                    });
+                    observer.observe(document.body, config);
+                }
             },
     });
 }
