@@ -55,6 +55,16 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
 
     chrome.action.setBadgeText({ tabId: state.youtubeTabID, text: "ON" });
 
+    if (changeInfo.url !== undefined) {
+        const url = changeInfo.url;
+        const video_id = extractVideoId(url);
+        if (video_id !== undefined && !state.playedVideos.includes(video_id)) {
+            state.playedVideos.push(video_id);
+            await setAutoMixState(state);
+        }
+        console.log(`AutoMix; URL: ${url} => ${video_id}`);
+    }
+
     if (changeInfo.status === "loading" && changeInfo.url?.includes("v=")) {
         console.log(`AutoMix; Wating for video`);
         await chrome.scripting.executeScript({
