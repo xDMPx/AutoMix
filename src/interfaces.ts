@@ -4,6 +4,7 @@ interface AutoMixState {
     attachedListener: boolean,
     ensureTheatreMode: boolean,
     ensureHighestQuality: boolean,
+    recommendations: { videoID: string, title: string }[],
     nextVideoId: string | null,
     nextVideoTitle: string | null,
 }

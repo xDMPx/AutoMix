@@ -37,6 +37,7 @@ chrome.tabs.onRemoved.addListener(async (tabId: number) => {
         state.attachedListener = false;
         state.nextVideoId = null;
         state.nextVideoTitle = null;
+        state.recommendations = [];
         await setAutoMixState(state);
         console.log(`AutoMix; YouTubeTabID => ${state.youtubeTabID}`);
         console.log(state.playedVideos);
@@ -77,6 +78,7 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
                 const video_url = data.url;
                 const video_title = data.title;
                 console.log(`AutoMix; next_video => ${video_title} : ${video_url}`);
+                const state = await getAutoMixState();
                 state.nextVideoId = extractVideoId(video_url)!;
                 state.nextVideoTitle = video_title;
                 await setAutoMixState(state);
@@ -200,7 +202,9 @@ async function getRandomRecommendation(tabID: number): Promise<{ url: string, ti
                 const video_id = extractVideoId(video_url) as string;
                 const duration = durationToSec(r.duration);
 
-                return duration <= 600 && !state.playedVideos.includes(video_id);
+                return duration <= 600 && !state.playedVideos.includes(video_id)
+                    && (state.recommendations.length === 0
+                        || state.recommendations.findIndex((v) => v.videoID === video_id) === -1);
             });
 
         console.log(`AutoMix; valid_recommendations =>`);
@@ -210,10 +214,23 @@ async function getRandomRecommendation(tabID: number): Promise<{ url: string, ti
             throw new Error("No recommendation found");
         }
 
-        const i = Math.floor(Math.random() * valid_recommendations.length);
-        const recommendation = valid_recommendations[i];
-        const video_url = recommendation.video_url;
-        const video_title = recommendation.video_title;
+        const new_recommendations: { videoID: string, title: string }[] = [];
+        for (let i = 0; i < 3; i++) {
+            const j = Math.floor(Math.random() * valid_recommendations.length);
+            const recommendation = valid_recommendations[j];
+            new_recommendations[i] = { videoID: extractVideoId(recommendation.video_url)!, title: recommendation.video_title };
+        }
+
+        console.log(`AutoMix; new_recommendations =>`);
+        new_recommendations.forEach((r) => { console.log(r); state.recommendations.push(r) });
+        const i = Math.floor(Math.random() * state.recommendations.length);
+        const recommendation = state.recommendations[i];
+        state.recommendations[i] = state.recommendations.pop()!;
+        console.log(state);
+        await setAutoMixState(state);
+
+        const video_url = `https://www.youtube.com/watch?v=${recommendation.videoID}`;
+        const video_title = recommendation.title;
 
         return { url: video_url, title: video_title };
     } else {
