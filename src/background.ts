@@ -215,11 +215,19 @@ async function getRandomRecommendation(tabID: number): Promise<{ url: string, ti
         }
 
         const new_recommendations: { videoID: string, title: string }[] = [];
+        const indexes: number[] = [];
         for (let i = 0; i < 3; i++) {
-            const j = Math.floor(Math.random() * valid_recommendations.length);
+            let j = Math.floor(Math.random() * valid_recommendations.length);
+            while (indexes.includes(j)) {
+                j = Math.floor(Math.random() * valid_recommendations.length);
+            }
+            indexes.push(j);
+
             const recommendation = valid_recommendations[j];
             new_recommendations[i] = { videoID: extractVideoId(recommendation.video_url)!, title: recommendation.video_title };
         }
+
+
 
         console.log(`AutoMix; new_recommendations =>`);
         new_recommendations.forEach((r) => { console.log(r); state.recommendations.push(r) });
