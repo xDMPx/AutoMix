@@ -37,3 +37,7 @@ export function extractVideoId(url: string): string | undefined {
 export function durationToSec(duration: string): number {
     return duration.split(':').map((val) => +val).reduce((acc, val) => acc * 60 + val);
 }
+
+export function videoIdIntoUrl(videoID: string): string {
+    return `https://www.youtube.com/watch?v=${videoID}`;
+}

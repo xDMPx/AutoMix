@@ -22,10 +22,6 @@ export async function getEnsureHighestQualityValue(): Promise<boolean> {
     return state.ensureHighestQuality;
 }
 
-export function videoIdIntoUrl(videoID: string): string {
-    return `https://www.youtube.com/watch?v=${videoID}`;
-}
-
 export function navigateToUrl(url: string) {
     chrome.tabs.create({ url: url });
 }

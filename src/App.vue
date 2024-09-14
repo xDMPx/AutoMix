@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getAutoMixState, setAutoMixState } from "./utils.mjs";
-import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, videoIdIntoUrl, navigateToUrl } from "./popup_utils.mjs";
+import { getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
+import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, navigateToUrl } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
 const ensureHighestQuality = ref(false);

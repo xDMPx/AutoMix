@@ -1,4 +1,4 @@
-import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, durationToSec } from "./utils.mjs";
+import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec } from "./utils.mjs";
 
 console.log(`AutoMix; start => ${Date.now()}`);
 
@@ -229,7 +229,7 @@ async function getRandomRecommendation(tabID: number): Promise<{ url: string, ti
         console.log(state);
         await setAutoMixState(state);
 
-        const video_url = `https://www.youtube.com/watch?v=${recommendation.videoID}`;
+        const video_url = videoIdIntoUrl(recommendation.videoID);
         const video_title = recommendation.title;
 
         return { url: video_url, title: video_title };
