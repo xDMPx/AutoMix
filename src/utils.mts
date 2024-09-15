@@ -8,6 +8,7 @@ export async function getAutoMixState(): Promise<AutoMixState> {
             ensureTheatreMode: false,
             ensureHighestQuality: false,
             recommendations: [],
+            recommendationsArrayMaxSize: 128,
             nextVideoId: null,
             nextVideoTitle: null,
         }

@@ -230,7 +230,19 @@ async function getRandomRecommendation(tabID: number): Promise<{ url: string, ti
 
 
         console.log(`AutoMix; new_recommendations =>`);
-        new_recommendations.forEach((r) => { console.log(r); state.recommendations.push(r) });
+        for (const r of new_recommendations) {
+            console.log(r);
+            if (state.recommendations.length < state.recommendationsArrayMaxSize) {
+                state.recommendations.push(r);
+            } else {
+                const i = Math.floor(Math.random() * state.recommendations.length);
+                const droped = state.recommendations[i];
+                console.log(`AutoMix; Recommendation array over limit dropping =>`);
+                console.log(droped);
+                state.recommendations[i] = r;
+            }
+        }
+
         const i = Math.floor(Math.random() * state.recommendations.length);
         const recommendation = state.recommendations[i];
         state.recommendations[i] = state.recommendations.pop()!;
