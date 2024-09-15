@@ -69,22 +69,8 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
     if (changeInfo.status === "loading" && changeInfo.url?.includes("v=")) {
         console.log(`AutoMix; Wating for video to load`);
         await attachVideoLoadedObserver(state.youtubeTabID);
-    }
-
-    if (changeInfo.audible === true && state.attachedListener === false) {
-        state.attachedListener = true;
-        getRandomRecommendation(state.youtubeTabID).then(
-            async (data) => {
-                const video_url = data.url;
-                const video_title = data.title;
-                console.log(`AutoMix; next_video => ${video_title} : ${video_url}`);
-                const state = await getAutoMixState();
-                state.nextVideoId = extractVideoId(video_url)!;
-                state.nextVideoTitle = video_title;
-                await setAutoMixState(state);
-                await attachVideoEndedListener(state.youtubeTabID as number, video_url);
-            });
-        await setAutoMixState(state);
+        console.log(`AutoMix; Wating for recommendations to load`);
+        await attachRecommendationLoadedObserver(state.youtubeTabID);
     }
 
 })
@@ -104,7 +90,25 @@ chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse
         }
 
     }
-    if (state.attachedListener !== false && msg.videoEndMessage !== undefined) {
+    else if (msg.recommendationsLoadedMessage) {
+        console.log(`AutoMix; Message => recommendationsLoadedMessage`);
+        state.attachedListener = true;
+        getRandomRecommendation(state.youtubeTabID).then(
+            async (data) => {
+                console.log(`AutoMix; Message => videoStartMessage`);
+                const video_url = data.url;
+                const video_title = data.title;
+                console.log(`AutoMix; next_video => ${video_title} : ${video_url}`);
+                const state = await getAutoMixState();
+                state.nextVideoId = extractVideoId(video_url)!;
+                state.nextVideoTitle = video_title;
+                await setAutoMixState(state);
+                await attachVideoEndedListener(state.youtubeTabID as number, video_url);
+            });
+        await setAutoMixState(state);
+
+    }
+    else if (state.attachedListener !== false && msg.videoEndMessage !== undefined) {
         const video_end_message = msg.videoEndMessage;
         console.log(`AutoMix; Message => `);
         console.log(video_end_message);
@@ -150,7 +154,7 @@ async function attachVideoEndedListener(tabID: number, nextVideoUrl: string) {
                 video.addEventListener("ended",
                     (e: Event) => {
                         console.log(`AutoMix; ${e}`);
-                        const msg: Message = { videoEndMessage: { ended: true, nextVideoUrl: nextVideoUrl }, videoStartMessage: undefined };
+                        const msg: Message = { videoEndMessage: { ended: true, nextVideoUrl: nextVideoUrl }, videoStartMessage: undefined, recommendationsLoadedMessage: undefined };
                         chrome.runtime.sendMessage(msg);
                     });
 
@@ -330,7 +334,7 @@ async function attachVideoLoadedObserver(tabID: number) {
                 console.log(`AutoMix; Ataching video loaded observer`);
                 const video_elements = document.querySelectorAll('video');
                 if (video_elements.length > 0) {
-                    const msg: Message = { videoStartMessage: true, videoEndMessage: undefined };
+                    const msg: Message = { videoStartMessage: true, videoEndMessage: undefined, recommendationsLoadedMessage: undefined };
                     chrome.runtime.sendMessage(msg);
                 } else {
                     const config = { attributes: true, childList: true, subtree: true };
@@ -339,10 +343,62 @@ async function attachVideoLoadedObserver(tabID: number) {
                         if (video_elements.length > 0) {
                             observer.disconnect();
                             console.log(`AutoMix; Video loaded`);
-                            const msg: Message = { videoStartMessage: true, videoEndMessage: undefined };
+                            const msg: Message = { videoStartMessage: true, videoEndMessage: undefined, recommendationsLoadedMessage: undefined };
                             chrome.runtime.sendMessage(msg);
                         }
                     });
+                    observer.observe(document.body, config);
+                }
+            },
+    });
+}
+
+async function attachRecommendationLoadedObserver(tabID: number) {
+    await chrome.scripting.executeScript({
+        target: { tabId: tabID },
+        func:
+            () => {
+                if (!document.URL) return;
+
+                console.log(`AutoMix; Ataching recommendations loaded observer`);
+
+                const elements = document.getElementsByTagName("ytd-compact-video-renderer") as HTMLCollectionOf<HTMLElement>;
+                const elements_array = [...elements];
+                const recommendations = elements_array.filter((e) => {
+                    const duration = e.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
+                    if (duration === undefined) {
+                        return undefined;
+                    }
+                    return { duration };
+
+                }).filter((r) => r !== undefined);
+
+
+                if (recommendations.length > 10) {
+                    const msg: Message = { recommendationsLoadedMessage: true, videoStartMessage: undefined, videoEndMessage: undefined };
+                    chrome.runtime.sendMessage(msg);
+                } else {
+                    const config = { attributes: true, childList: true, subtree: true };
+                    const observer = new MutationObserver(
+                        () => {
+                            const elements = document.getElementsByTagName("ytd-compact-video-renderer") as HTMLCollectionOf<HTMLElement>;
+                            const elements_array = [...elements];
+                            const recommendations = elements_array.filter((e) => {
+                                const duration = e.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
+                                if (duration === undefined) {
+                                    return undefined;
+                                }
+                                return { duration };
+
+                            }).filter((r) => r !== undefined);
+
+                            if (recommendations.length > 10) {
+                                observer.disconnect();
+                                console.log(`AutoMix; Mutation Recommendations loaded => ${elements.length}`);
+                                const msg: Message = { recommendationsLoadedMessage: true, videoStartMessage: undefined, videoEndMessage: undefined };
+                                chrome.runtime.sendMessage(msg);
+                            }
+                        });
                     observer.observe(document.body, config);
                 }
             },

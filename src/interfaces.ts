@@ -13,6 +13,7 @@ interface AutoMixState {
 interface Message {
     videoEndMessage: VideoEndMessage | undefined,
     videoStartMessage: boolean | undefined,
+    recommendationsLoadedMessage: boolean | undefined,
 }
 
 interface VideoEndMessage {
@@ -27,4 +28,8 @@ interface PopupMessage {
 interface VideoPlayer extends Element {
     getAvailableQualityLevels: () => string[]
     setPlaybackQualityRange: (quality: string) => void
+}
+
+interface YtdContinuationItem extends Element {
+    onVisible: () => void
 }
