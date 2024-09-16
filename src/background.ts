@@ -1,4 +1,4 @@
-import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec } from "./utils.mjs";
+import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec, getFullyLoadedVideoRecommendationsCount } from "./utils.mjs";
 
 console.log(`AutoMix; start => ${Date.now()}`);
 
@@ -361,40 +361,20 @@ async function attachRecommendationLoadedObserver(tabID: number) {
                 if (!document.URL) return;
 
                 console.log(`AutoMix; Ataching recommendations loaded observer`);
+                const recommendations_count = getFullyLoadedVideoRecommendationsCount();
 
-                const elements = document.getElementsByTagName("ytd-compact-video-renderer") as HTMLCollectionOf<HTMLElement>;
-                const elements_array = [...elements];
-                const recommendations = elements_array.filter((e) => {
-                    const duration = e.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
-                    if (duration === undefined) {
-                        return undefined;
-                    }
-                    return { duration };
-
-                }).filter((r) => r !== undefined);
-
-
-                if (recommendations.length > 10) {
+                if (recommendations_count > 10) {
                     const msg: Message = { recommendationsLoadedMessage: true, videoStartMessage: undefined, videoEndMessage: undefined };
                     chrome.runtime.sendMessage(msg);
                 } else {
                     const config = { attributes: true, childList: true, subtree: true };
                     const observer = new MutationObserver(
                         () => {
-                            const elements = document.getElementsByTagName("ytd-compact-video-renderer") as HTMLCollectionOf<HTMLElement>;
-                            const elements_array = [...elements];
-                            const recommendations = elements_array.filter((e) => {
-                                const duration = e.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
-                                if (duration === undefined) {
-                                    return undefined;
-                                }
-                                return { duration };
 
-                            }).filter((r) => r !== undefined);
-
-                            if (recommendations.length > 10) {
+                            const recommendations_count = getFullyLoadedVideoRecommendationsCount();
+                            if (recommendations_count > 10) {
                                 observer.disconnect();
-                                console.log(`AutoMix; Mutation Recommendations loaded => ${elements.length}`);
+                                console.log(`AutoMix; Mutation Recommendations loaded => ${recommendations_count}`);
                                 const msg: Message = { recommendationsLoadedMessage: true, videoStartMessage: undefined, videoEndMessage: undefined };
                                 chrome.runtime.sendMessage(msg);
                             }
