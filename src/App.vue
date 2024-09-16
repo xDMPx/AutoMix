@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { PopupMessage } from "./interfaces.mjs";
 import { getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
 import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, navigateToUrl } from "./popup_utils.mjs";
 

@@ -1,3 +1,4 @@
+import { Message, PopupMessage, VideoPlayer } from "./interfaces.mjs";
 import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec, getFullyLoadedVideoRecommendationsCount } from "./utils.mjs";
 
 console.log(`AutoMix; start => ${Date.now()}`);

@@ -1,4 +1,4 @@
-interface AutoMixState {
+export interface AutoMixState {
     youtubeTabID: number | undefined,
     playedVideos: string[],
     attachedListener: boolean,
@@ -10,26 +10,26 @@ interface AutoMixState {
     nextVideoTitle: string | null,
 }
 
-interface Message {
+export interface Message {
     videoEndMessage: VideoEndMessage | undefined,
     videoStartMessage: boolean | undefined,
     recommendationsLoadedMessage: boolean | undefined,
 }
 
-interface VideoEndMessage {
+export interface VideoEndMessage {
     ended: boolean | undefined,
     nextVideoUrl: string,
 }
 
-interface PopupMessage {
+export interface PopupMessage {
     ensureTheatreMode: boolean,
 }
 
-interface VideoPlayer extends Element {
+export interface VideoPlayer extends Element {
     getAvailableQualityLevels: () => string[]
     setPlaybackQualityRange: (quality: string) => void
 }
 
-interface YtdContinuationItem extends Element {
+export interface YtdContinuationItem extends Element {
     onVisible: () => void
 }

@@ -1,3 +1,5 @@
+import { AutoMixState } from "./interfaces.mjs";
+
 export async function getAutoMixState(): Promise<AutoMixState> {
     let { state }: { [key: string]: AutoMixState | undefined } = await chrome.storage.local.get("state");
     if (state == undefined) {
