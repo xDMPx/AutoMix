@@ -1,5 +1,7 @@
-import { Message, PopupMessage, VideoPlayer } from "./interfaces.mjs";
-import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec, getFullyLoadedVideoRecommendationsCount } from "./utils.mjs";
+import { Message, PopupMessage } from "./interfaces.mjs";
+import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec } from "./utils.mjs";
+import { extractRecommendations } from "./scripts/extract_recommendations.mjs";
+import { addVideoEndedListener } from "./scripts/add_video_ended_listener.mjs";
 
 console.log(`AutoMix; start => ${Date.now()}`);
 
@@ -71,7 +73,7 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
         console.log(`AutoMix; Wating for video to load`);
         await attachVideoLoadedObserver(state.youtubeTabID);
         console.log(`AutoMix; Wating for recommendations to load`);
-        await attachRecommendationLoadedObserver(state.youtubeTabID);
+        await attachRecommendationsLoadedObserver(state.youtubeTabID);
     }
 
 })
@@ -143,58 +145,10 @@ chrome.commands.onCommand.addListener(async (command: string) => {
     }
 });
 
-async function attachVideoEndedListener(tabID: number, nextVideoUrl: string) {
-    console.log(`AutoMix; Ataching ended event listener`);
-    await chrome.scripting.executeScript({
-        target: { tabId: tabID },
-        func:
-            (nextVideoUrl: string) => {
-                const video = document.querySelectorAll('video')[0];
-
-                console.log(`AutoMix; Ataching ended event listener => ${nextVideoUrl}`);
-                video.addEventListener("ended",
-                    (e: Event) => {
-                        console.log(`AutoMix; ${e}`);
-                        const msg: Message = { videoEndMessage: { ended: true, nextVideoUrl: nextVideoUrl }, videoStartMessage: undefined, recommendationsLoadedMessage: undefined };
-                        chrome.runtime.sendMessage(msg);
-                    });
-
-            },
-        args: [nextVideoUrl]
-    });
-}
-
 async function getRandomRecommendation(tabID: number): Promise<{ url: string, title: string }> {
     const res = await chrome.scripting.executeScript({
         target: { tabId: tabID },
-        func:
-            () => {
-                const elements = document.getElementsByTagName("ytd-compact-video-renderer") as HTMLCollectionOf<HTMLElement>;
-                console.log(`AutoMix; elements =>`);
-                console.log(elements);
-                if (elements.length === 0) {
-                    return undefined;
-                }
-
-                const elements_array = [...elements];
-                const recommendations = elements_array.map(
-                    (element) => {
-                        const video_url = element.getElementsByTagName("a").item(0)?.href;
-                        const video_title = [...element.getElementsByTagName("span")].find((e) => e.id === "video-title")?.innerText;
-                        const duration = element.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
-                        if (video_url === undefined || duration === undefined || video_title === undefined) {
-                            return undefined;
-                        }
-                        return { video_url, video_title, duration };
-                    }).filter((recommendation) => recommendation !== undefined);
-
-                if (recommendations.length === 0) {
-                    console.log(`AutoMix; No recommendations found`);
-                    return undefined;
-                }
-
-                return recommendations;
-            }
+        func: extractRecommendations,
     });
 
     const recommendations = res.at(0)?.result;
@@ -272,38 +226,26 @@ async function navigateToNextVideo(tabID: number, nextVideoUrl: string) {
     await setAutoMixState(state);
 }
 
+async function attachVideoEndedListener(tabID: number, nextVideoUrl: string) {
+    console.log(`AutoMix; Ataching ended event listener`);
+    await chrome.scripting.executeScript({
+        target: { tabId: tabID },
+        func: addVideoEndedListener,
+        args: [nextVideoUrl]
+    });
+}
+
 async function disableAutoplay(tabID: number) {
     await chrome.scripting.executeScript({
         target: { tabId: tabID },
-        func:
-            () => {
-                console.log(`AutoMix; Disabling autoplay`);
-                const ytp_right_controls = document.getElementsByClassName('ytp-right-controls')[0];
-                const autoplay_button = ytp_right_controls.childNodes[1] as HTMLElement;
-                const autoplay_enabled = (autoplay_button.childNodes[0].childNodes[0] as HTMLElement).ariaChecked === 'true';
-
-                if (autoplay_enabled) {
-                    autoplay_button.click();
-                }
-            }
+        files: ["disable_autoplay.js"],
     });
 }
 
 async function ensureTheatreMode(tabID: number) {
     await chrome.scripting.executeScript({
         target: { tabId: tabID },
-        func:
-            () => {
-                console.log(`AutoMix; Ensuring theatre mode`);
-                const ytd_watch_attributes = [...document.getElementsByTagName('ytd-watch-flexy')[0].attributes];
-
-                const theatre_attribute = ytd_watch_attributes.find((a) => a.name === 'theatre' || a.name === 'theater-requested_');
-                if (theatre_attribute === undefined) {
-                    const ytp_right_controls = document.getElementsByClassName('ytp-right-controls')[0];
-                    const theatre_button = ytp_right_controls.childNodes[6] as HTMLElement;
-                    theatre_button.click();
-                }
-            }
+        files: ["ensure_theatre_mode.js"],
     });
 }
 
@@ -311,77 +253,20 @@ async function ensureHighestQuality(tabID: number) {
     await chrome.scripting.executeScript({
         target: { tabId: tabID },
         world: "MAIN",
-        func:
-            () => {
-                console.log(`AutoMix; Ensuring highest quality`);
-                const player = document.querySelectorAll('.html5-video-player')[0] as VideoPlayer;
-                const quality_levels = player.getAvailableQualityLevels();
-                const highest_quality = quality_levels[0];
-                console.log(`AutoMix; highest quality ${highest_quality}`);
-                const highest2_quality = quality_levels[1];
-                player.setPlaybackQualityRange(highest2_quality);
-                player.setPlaybackQualityRange(highest_quality);
-            },
+        files: ["ensure_highest_quality.js"],
     });
 }
 
 async function attachVideoLoadedObserver(tabID: number) {
     await chrome.scripting.executeScript({
         target: { tabId: tabID },
-        func:
-            () => {
-                if (!document.URL) return;
-
-                console.log(`AutoMix; Ataching video loaded observer`);
-                const video_elements = document.querySelectorAll('video');
-                if (video_elements.length > 0) {
-                    const msg: Message = { videoStartMessage: true, videoEndMessage: undefined, recommendationsLoadedMessage: undefined };
-                    chrome.runtime.sendMessage(msg);
-                } else {
-                    const config = { attributes: true, childList: true, subtree: true };
-                    const observer = new MutationObserver(() => {
-                        const video_elements = document.querySelectorAll('video');
-                        if (video_elements.length > 0) {
-                            observer.disconnect();
-                            console.log(`AutoMix; Video loaded`);
-                            const msg: Message = { videoStartMessage: true, videoEndMessage: undefined, recommendationsLoadedMessage: undefined };
-                            chrome.runtime.sendMessage(msg);
-                        }
-                    });
-                    observer.observe(document.body, config);
-                }
-            },
+        files: ["video_loaded_observer.js"],
     });
 }
 
-async function attachRecommendationLoadedObserver(tabID: number) {
+async function attachRecommendationsLoadedObserver(tabID: number) {
     await chrome.scripting.executeScript({
         target: { tabId: tabID },
-        func:
-            () => {
-                if (!document.URL) return;
-
-                console.log(`AutoMix; Ataching recommendations loaded observer`);
-                const recommendations_count = getFullyLoadedVideoRecommendationsCount();
-
-                if (recommendations_count > 10) {
-                    const msg: Message = { recommendationsLoadedMessage: true, videoStartMessage: undefined, videoEndMessage: undefined };
-                    chrome.runtime.sendMessage(msg);
-                } else {
-                    const config = { attributes: true, childList: true, subtree: true };
-                    const observer = new MutationObserver(
-                        () => {
-
-                            const recommendations_count = getFullyLoadedVideoRecommendationsCount();
-                            if (recommendations_count > 10) {
-                                observer.disconnect();
-                                console.log(`AutoMix; Mutation Recommendations loaded => ${recommendations_count}`);
-                                const msg: Message = { recommendationsLoadedMessage: true, videoStartMessage: undefined, videoEndMessage: undefined };
-                                chrome.runtime.sendMessage(msg);
-                            }
-                        });
-                    observer.observe(document.body, config);
-                }
-            },
+        files: ["recommendations_loaded_observer.js"],
     });
 }

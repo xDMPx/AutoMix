@@ -6,6 +6,11 @@ module.exports = {
     entry: {
         background: './src/background.ts',
         popup: './src/main.ts',
+        recommendations_loaded_observer: './src/scripts/recommendations_loaded_observer.mts',
+        video_loaded_observer: './src/scripts/video_loaded_observer.mts',
+        ensure_highest_quality: './src/scripts/ensure_highest_quality.mts',
+        ensure_theatre_mode: './src/scripts/ensure_theatre_mode.mts',
+        disable_autoplay: './src/scripts/disable_autoplay.mts',
     },
     module: {
         rules: [
