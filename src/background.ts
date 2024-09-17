@@ -219,7 +219,7 @@ async function getRandomRecommendation(tabID: number): Promise<{ url: string, ti
 
 async function navigateToNextVideo(tabID: number, nextVideoUrl: string) {
     console.log(`AutoMix; Navigating to next video => ${nextVideoUrl}`);
-    setTimeout(() => chrome.tabs.update(tabID, { url: nextVideoUrl }), 2500);
+    chrome.tabs.update(tabID, { url: nextVideoUrl });
 
     const state = await getAutoMixState();
     state.attachedListener = false;
