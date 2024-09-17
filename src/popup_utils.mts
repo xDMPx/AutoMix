@@ -25,3 +25,7 @@ export async function getEnsureHighestQualityValue(): Promise<boolean> {
 export function navigateToUrl(url: string) {
     chrome.tabs.create({ url: url });
 }
+
+export function videoIdIntoThumbnailUrl(videoID: string): string {
+    return `https://i.ytimg.com/vi/${videoID}/hqdefault.jpg`;
+}

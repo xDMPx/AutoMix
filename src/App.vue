@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { PopupMessage } from "./interfaces.mjs";
 import { getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
-import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, navigateToUrl } from "./popup_utils.mjs";
+import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
 const ensureHighestQuality = ref(false);
@@ -61,6 +61,7 @@ onMounted(() => {
                 @click="navigateToUrl(videoIdIntoUrl(nextVideoId))">
                 {{ nextVideoTitle }}
             </a>
+            <img :src="videoIdIntoThumbnailUrl(nextVideoId)" loading="lazy" />
         </div>
         <div class="divider" />
         <div class="form-control">
