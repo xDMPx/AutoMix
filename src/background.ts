@@ -1,4 +1,4 @@
-import { Message, PopupMessage } from "./interfaces.mjs";
+import { VideoEndMessage, Message, PopupMessage } from "./interfaces.mjs";
 import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec } from "./utils.mjs";
 import { extractRecommendations } from "./scripts/extract_recommendations.mjs";
 import { addVideoEndedListener } from "./scripts/add_video_ended_listener.mjs";
@@ -83,42 +83,15 @@ chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse
     if (state.youtubeTabID === undefined) return;
     if (msg.videoStartMessage) {
         console.log(`AutoMix; Message => videoStartMessage`);
-
-        if (state.ensureHighestQuality) {
-            await ensureHighestQuality(state.youtubeTabID);
-        }
-        disableAutoplay(state.youtubeTabID);
-        if (state.ensureTheatreMode) {
-            ensureTheatreMode(state.youtubeTabID);
-        }
-
+        handleVideoStartMessage();
     }
     else if (msg.recommendationsLoadedMessage) {
         console.log(`AutoMix; Message => recommendationsLoadedMessage`);
-        state.attachedListener = true;
-        getRandomRecommendation(state.youtubeTabID).then(
-            async (data) => {
-                console.log(`AutoMix; Message => videoStartMessage`);
-                const video_url = data.url;
-                const video_title = data.title;
-                console.log(`AutoMix; next_video => ${video_title} : ${video_url}`);
-                const state = await getAutoMixState();
-                state.nextVideoId = extractVideoId(video_url)!;
-                state.nextVideoTitle = video_title;
-                await setAutoMixState(state);
-                await attachVideoEndedListener(state.youtubeTabID as number, video_url);
-            });
-        await setAutoMixState(state);
-
+        handleRecommendationsLoadedMessage();
     }
-    else if (state.attachedListener !== false && msg.videoEndMessage !== undefined) {
-        const video_end_message = msg.videoEndMessage;
-        console.log(`AutoMix; Message => `);
-        console.log(video_end_message);
-        if (video_end_message.ended === true) {
-            console.log(`AutoMix; ended`);
-            navigateToNextVideo(state.youtubeTabID, video_end_message.nextVideoUrl);
-        }
+    else if (msg.videoEndMessage) {
+        console.log(`AutoMix; Message => videoEndMessage`);
+        handleVideoEndMessage(msg.videoEndMessage);
     }
 });
 
@@ -269,4 +242,50 @@ async function attachRecommendationsLoadedObserver(tabID: number) {
         target: { tabId: tabID },
         files: ["recommendations_loaded_observer.js"],
     });
+}
+
+async function handleVideoStartMessage() {
+    const state = await getAutoMixState();
+    if (state.youtubeTabID === undefined) return;
+
+    if (state.ensureHighestQuality) {
+        await ensureHighestQuality(state.youtubeTabID);
+    }
+    disableAutoplay(state.youtubeTabID);
+    if (state.ensureTheatreMode) {
+        ensureTheatreMode(state.youtubeTabID);
+    }
+}
+
+async function handleRecommendationsLoadedMessage() {
+    const state = await getAutoMixState();
+    if (state.youtubeTabID === undefined) return;
+
+    state.attachedListener = true;
+    getRandomRecommendation(state.youtubeTabID).then(
+        async (data) => {
+            console.log(`AutoMix; Message => videoStartMessage`);
+            const video_url = data.url;
+            const video_title = data.title;
+            console.log(`AutoMix; next_video => ${video_title} : ${video_url}`);
+            const state = await getAutoMixState();
+            state.nextVideoId = extractVideoId(video_url)!;
+            state.nextVideoTitle = video_title;
+            await setAutoMixState(state);
+            await attachVideoEndedListener(state.youtubeTabID!, video_url);
+        });
+    await setAutoMixState(state);
+}
+
+
+async function handleVideoEndMessage(msg: VideoEndMessage) {
+    const state = await getAutoMixState();
+    if (state.youtubeTabID === undefined || state.attachedListener === false) return;
+
+    console.log(`AutoMix; Message => `);
+    console.log(msg);
+
+    if (msg.ended === true) {
+        navigateToNextVideo(state.youtubeTabID, msg.nextVideoUrl);
+    }
 }
