@@ -56,12 +56,14 @@ onMounted(() => {
 
 <template>
     <div class="w-full h-full table p-2">
-        <div>Next:<br>
+        <div class="space-y-4">
+            <p>Next:</p>
             <a class="link link-secondary" :href="videoIdIntoUrl(nextVideoId)"
                 @click="navigateToUrl(videoIdIntoUrl(nextVideoId))">
                 {{ nextVideoTitle }}
             </a>
-            <img :src="videoIdIntoThumbnailUrl(nextVideoId)" loading="lazy" />
+            <img :src="videoIdIntoThumbnailUrl(nextVideoId)" loading="lazy"
+                class="rounded-md object-cover w-[168px] h-[94px] m-auto" />
         </div>
         <div class="divider" />
         <div class="form-control">
