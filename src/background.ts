@@ -238,9 +238,18 @@ async function attachVideoLoadedObserver(tabID: number) {
 }
 
 async function attachRecommendationsLoadedObserver(tabID: number) {
+    await attachLoadAllRecommendations(tabID);
     await chrome.scripting.executeScript({
         target: { tabId: tabID },
         files: ["recommendations_loaded_observer.js"],
+    });
+}
+
+async function attachLoadAllRecommendations(tabID: number) {
+    await chrome.scripting.executeScript({
+        target: { tabId: tabID },
+        world: "MAIN",
+        files: ["load_all_recommendations.js"],
     });
 }
 

@@ -30,6 +30,6 @@ export interface VideoPlayer extends Element {
     setPlaybackQualityRange: (quality: string) => void
 }
 
-export interface YtdContinuationItem extends Element {
+export interface YtdContinuationRenderer extends Element {
     onVisible: () => void
 }
