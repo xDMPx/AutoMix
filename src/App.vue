@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { PopupMessage } from "./interfaces.mjs";
-import { getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
+import { clearAutoMixState, getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
 import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
@@ -35,7 +35,12 @@ async function onClearPlayedVideosClick() {
     playedVideosCount.value = await getPlayedVideosCount();
 }
 
-onMounted(() => {
+async function onClearStateClick() {
+    clearAutoMixState();
+    onMountedHook();
+}
+
+function onMountedHook() {
     getEnsureTheatreModeValue().then(
         (checked) => ensureTheatreMode.value = checked
     );
@@ -51,7 +56,10 @@ onMounted(() => {
             nextVideoTitle.value = (s.nextVideoTitle) ? s.nextVideoTitle : "";
         }
     );
-});
+}
+
+onMounted(onMountedHook);
+
 </script>
 
 <template>
@@ -81,8 +89,13 @@ onMounted(() => {
             </label>
         </div>
         <div class="divider" />
-        <button class="btn btn-sm btn-secondary" @click="onClearPlayedVideosClick">Clear played videos</button>
-        <span class="pl-2"> ({{ playedVideosCount }}) </span>
+        <div class="space-y-4">
+            <div>
+                <button class="btn btn-sm btn-secondary" @click="onClearPlayedVideosClick">Clear played videos</button>
+                <span class="pl-2"> ({{ playedVideosCount }}) </span>
+            </div>
+            <button class="btn btn-sm btn-secondary" @click="onClearStateClick">Clear state</button>
+        </div>
     </div>
 </template>
 
