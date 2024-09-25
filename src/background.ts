@@ -63,6 +63,10 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
         const url = changeInfo.url;
         const video_id = extractVideoId(url);
         if (video_id !== undefined && !state.playedVideos.includes(video_id)) {
+            if (state.playedVideos.length >= state.playedVideosArrayMaxSize) {
+                const video_id = state.playedVideos.shift();
+                console.log(`AutoMix; Played Videos array over limit dropping => ${video_id}`);
+            }
             state.playedVideos.push(video_id);
             await setAutoMixState(state);
         }

@@ -1,6 +1,7 @@
 export interface AutoMixState {
     youtubeTabID: number | undefined,
     playedVideos: string[],
+    playedVideosArrayMaxSize: number,
     attachedListener: boolean,
     ensureTheatreMode: boolean,
     ensureHighestQuality: boolean,
