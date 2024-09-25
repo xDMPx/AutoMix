@@ -2,10 +2,11 @@
 import { ref, onMounted } from 'vue';
 import { PopupMessage } from "./interfaces.mjs";
 import { clearAutoMixState, getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
-import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl } from "./popup_utils.mjs";
+import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl, getClearPlayedVideosManually } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
 const ensureHighestQuality = ref(false);
+const clearPlayedVideosManually = ref(false);
 const nextVideoId = ref("");
 const nextVideoTitle = ref("");
 const playedVideosCount = ref(0);
@@ -30,6 +31,13 @@ async function toggleEnsureHighestQuality() {
     await setAutoMixState(state);
 }
 
+async function toggleClearPlayedVideosManually() {
+    const state = await getAutoMixState();
+    state.clearPlayedVideosManually = !state.clearPlayedVideosManually;
+    console.log(`AutoMixPopup; clearPlayedVideosManually => ${state.clearPlayedVideosManually}`);
+    await setAutoMixState(state);
+}
+
 async function onClearPlayedVideosClick() {
     await clearPlayedVideos();
     playedVideosCount.value = await getPlayedVideosCount();
@@ -49,6 +57,9 @@ function onMountedHook() {
     );
     getPlayedVideosCount().then(
         count => playedVideosCount.value = count
+    )
+    getClearPlayedVideosManually().then(
+        checked => clearPlayedVideosManually.value = checked
     )
     getAutoMixState().then(
         (s) => {
@@ -86,6 +97,13 @@ onMounted(onMountedHook);
                 <span class="label-text pr-2">Ensure Highest Quality:</span>
                 <input class="checkbox" @click="toggleEnsureHighestQuality" v-model="ensureHighestQuality"
                     name="ensureHighestQuality" type="checkbox" checked="true" />
+            </label>
+        </div>
+        <div class="form-control">
+            <label class="label cursor-pointer mr-auto">
+                <span class="label-text pr-2">Clear Played Videos Manually:</span>
+                <input class="checkbox" @click="toggleClearPlayedVideosManually" v-model="clearPlayedVideosManually"
+                    name="clearPlayedVideosManually" type="checkbox" checked="true" />
             </label>
         </div>
         <div class="divider" />

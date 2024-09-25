@@ -22,6 +22,11 @@ export async function getEnsureHighestQualityValue(): Promise<boolean> {
     return state.ensureHighestQuality;
 }
 
+export async function getClearPlayedVideosManually(): Promise<boolean> {
+    const state = await getAutoMixState();
+    return state.clearPlayedVideosManually;
+}
+
 export function navigateToUrl(url: string) {
     chrome.tabs.create({ url: url });
 }
