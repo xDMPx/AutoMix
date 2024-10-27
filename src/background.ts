@@ -27,6 +27,7 @@ chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
                     new_state.playedVideos = state.playedVideos;
                 }
                 await setAutoMixState(new_state);
+                state = new_state;
             }
         }
 
