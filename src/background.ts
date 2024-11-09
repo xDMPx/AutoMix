@@ -158,17 +158,24 @@ async function getRandomRecommendation(tabID: number): Promise<{ url: string, ti
 
         const new_recommendations: { videoID: string, title: string }[] = [];
         const indexes: number[] = [];
-        for (let i = 0; i < 3; i++) {
-            let j = Math.floor(Math.random() * valid_recommendations.length);
-            while (indexes.includes(j)) {
-                j = Math.floor(Math.random() * valid_recommendations.length);
+        if (valid_recommendations.length > 3) {
+            for (let i = 0; i < 3; i++) {
+                let j = Math.floor(Math.random() * valid_recommendations.length);
+                while (indexes.includes(j)) {
+                    j = Math.floor(Math.random() * valid_recommendations.length);
+                }
+                indexes.push(j);
+
+                const recommendation = valid_recommendations[j];
+                new_recommendations[i] = { videoID: extractVideoId(recommendation.video_url)!, title: recommendation.video_title };
             }
-            indexes.push(j);
-
-            const recommendation = valid_recommendations[j];
-            new_recommendations[i] = { videoID: extractVideoId(recommendation.video_url)!, title: recommendation.video_title };
+        } else {
+            new_recommendations.concat(
+                valid_recommendations.map(
+                    x => { return { videoID: extractVideoId(x.video_url)!, title: x.video_title } }
+                )
+            );
         }
-
 
 
         console.log(`AutoMix; new_recommendations =>`);
@@ -283,7 +290,6 @@ async function handleRecommendationsLoadedMessage() {
     state.attachedListener = true;
     getRandomRecommendation(state.youtubeTabID).then(
         async (data) => {
-            console.log(`AutoMix; Message => videoStartMessage`);
             const video_url = data.url;
             const video_title = data.title;
             console.log(`AutoMix; next_video => ${video_title} : ${video_url}`);
