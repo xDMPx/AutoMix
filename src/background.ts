@@ -86,6 +86,11 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
         await attachRecommendationsLoadedObserver(state.youtubeTabID);
     }
 
+
+    if (changeInfo.status === "loading" && state.attachedListener === true && state.nextVideoId !== null) {
+        attachVideoEndedListener(tabId, state.nextVideoId);
+    }
+
 })
 
 chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse) => {
