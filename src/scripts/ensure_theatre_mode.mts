@@ -1,6 +1,5 @@
-(() => {
-    console.log(`AutoMix; Ensuring theatre mode`);
-    const ytd_watch_attributes = [...document.getElementsByTagName('ytd-watch-flexy')[0].attributes];
+function ensureTheatreMode(ytd_watch_flexy: Element) {
+    const ytd_watch_attributes = [...ytd_watch_flexy.attributes];
 
     const theatre_attribute = ytd_watch_attributes.find((a) => a.name === 'theatre' || a.name === 'theater-requested_');
     if (theatre_attribute === undefined) {
@@ -8,4 +7,24 @@
         const theatre_button = ytp_right_controls.childNodes[6] as HTMLElement;
         theatre_button.click();
     }
+}
+
+
+(() => {
+    console.log(`AutoMix; Ensuring theatre mode`);
+    let ytd_watch_flexy = document.getElementsByTagName('ytd-watch-flexy').item(0);
+    if (ytd_watch_flexy === null) {
+        const config = { attributes: true, childList: true, subtree: true };
+        const observer = new MutationObserver(() => {
+            let ytd_watch_flexy = document.getElementsByTagName('ytd-watch-flexy').item(0);
+            if (ytd_watch_flexy !== null) {
+                ensureTheatreMode(ytd_watch_flexy)
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document.body, config);
+        return;
+    }
+    ensureTheatreMode(ytd_watch_flexy);
 })();

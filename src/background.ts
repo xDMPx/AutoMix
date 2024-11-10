@@ -284,7 +284,7 @@ async function handleVideoStartMessage() {
     }
     disableAutoplay(state.youtubeTabID);
     if (state.ensureTheatreMode) {
-        ensureTheatreMode(state.youtubeTabID);
+        await ensureTheatreMode(state.youtubeTabID);
     }
 }
 
