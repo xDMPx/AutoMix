@@ -6,6 +6,7 @@ module.exports = {
     entry: {
         background: './src/background.ts',
         popup: './src/main.ts',
+        options: './src/options/main.ts',
         recommendations_loaded_observer: './src/scripts/recommendations_loaded_observer.mts',
         video_loaded_observer: './src/scripts/video_loaded_observer.mts',
         ensure_highest_quality: './src/scripts/ensure_highest_quality.mts',
@@ -59,6 +60,7 @@ module.exports = {
             patterns: [
                 { from: "./manifest.json", to: "./" },
                 { from: "./src/index.html", to: "./" },
+                { from: "./src/options/index.html", to: "./options.html" },
             ],
         }),
         new VueLoaderPlugin(),
