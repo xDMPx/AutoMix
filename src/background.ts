@@ -157,7 +157,7 @@ async function getRandomRecommendation(tabID: number): Promise<{ url: string, ti
         console.log(`AutoMix; valid_recommendations =>`);
         console.log(valid_recommendations);
 
-        if (valid_recommendations.length === 0) {
+        if (valid_recommendations.length === 0 && state.recommendations.length === 0) {
             throw new Error("No recommendation found");
         }
 
