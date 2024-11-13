@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getAutoMixState, setAutoMixState } from "../utils.mjs";
+import { clearAutoMixState, getAutoMixState, setAutoMixState } from "../utils.mjs";
 import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getClearPlayedVideosManually } from "../popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
@@ -28,6 +28,11 @@ async function toggleClearPlayedVideosManually() {
     await setAutoMixState(state);
 }
 
+async function onClearStateClick() {
+    clearAutoMixState();
+    onMountedHook();
+}
+
 function onMountedHook() {
     getEnsureTheatreModeValue().then(
         (checked) => ensureTheatreMode.value = checked
@@ -35,6 +40,9 @@ function onMountedHook() {
     getEnsureHighestQualityValue().then(
         (checked) => ensureHighestQuality.value = checked
     );
+    getClearPlayedVideosManually().then(
+        checked => clearPlayedVideosManually.value = checked
+    )
     getClearPlayedVideosManually().then(
         checked => clearPlayedVideosManually.value = checked
     )
@@ -66,6 +74,10 @@ onMounted(onMountedHook);
                 <input class="checkbox" @click="toggleClearPlayedVideosManually" v-model="clearPlayedVideosManually"
                     name="clearPlayedVideosManually" type="checkbox" checked="true" />
             </label>
+        </div>
+        <div class="divider" />
+        <div class="space-y-4">
+            <button class="btn btn-sm btn-secondary" @click="onClearStateClick">Clear state</button>
         </div>
     </div>
 </template>

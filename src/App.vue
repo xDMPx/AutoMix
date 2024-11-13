@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { PopupMessage } from "./interfaces.mjs";
-import { clearAutoMixState, getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
-import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl, getClearPlayedVideosManually } from "./popup_utils.mjs";
+import { getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
+import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
 const ensureHighestQuality = ref(false);
-const clearPlayedVideosManually = ref(false);
 const nextVideoId = ref("");
 const nextVideoTitle = ref("");
 const playedVideosCount = ref(0);
@@ -43,11 +42,6 @@ async function onClearPlayedVideosClick() {
     playedVideosCount.value = await getPlayedVideosCount();
 }
 
-async function onClearStateClick() {
-    clearAutoMixState();
-    onMountedHook();
-}
-
 function onMountedHook() {
     getEnsureTheatreModeValue().then(
         (checked) => ensureTheatreMode.value = checked
@@ -57,10 +51,7 @@ function onMountedHook() {
     );
     getPlayedVideosCount().then(
         count => playedVideosCount.value = count
-    )
-    getClearPlayedVideosManually().then(
-        checked => clearPlayedVideosManually.value = checked
-    )
+    );
     getAutoMixState().then(
         (s) => {
             nextVideoId.value = (s.nextVideoId) ? s.nextVideoId : "";
@@ -99,20 +90,12 @@ onMounted(onMountedHook);
                     name="ensureHighestQuality" type="checkbox" checked="true" />
             </label>
         </div>
-        <div class="form-control">
-            <label class="label cursor-pointer mr-auto">
-                <span class="label-text pr-2">Clear Played Videos Manually:</span>
-                <input class="checkbox" @click="toggleClearPlayedVideosManually" v-model="clearPlayedVideosManually"
-                    name="clearPlayedVideosManually" type="checkbox" checked="true" />
-            </label>
-        </div>
         <div class="divider" />
         <div class="space-y-4">
             <div>
                 <button class="btn btn-sm btn-secondary" @click="onClearPlayedVideosClick">Clear played videos</button>
                 <span class="pl-2"> ({{ playedVideosCount }}) </span>
             </div>
-            <button class="btn btn-sm btn-secondary" @click="onClearStateClick">Clear state</button>
         </div>
     </div>
 </template>
