@@ -5,6 +5,7 @@ function loadMoreRecommendations() {
     const ytd_continuation_renderer = related?.getElementsByTagName("ytd-continuation-item-renderer").item(0);
     if (ytd_continuation_renderer !== null && ytd_continuation_renderer !== undefined) {
         (ytd_continuation_renderer as YtdContinuationRenderer).onVisible();
+        ytd_continuation_renderer.getElementsByTagName("button").item(0)?.click();
     } else {
         throw Error("No more recommendations to load");
     }
