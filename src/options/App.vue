@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { clearAutoMixState, getAutoMixState, setAutoMixState } from "../utils.mjs";
-import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getClearPlayedVideosManually } from "../popup_utils.mjs";
+import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getClearPlayedVideosManually, getFilterOutNonMusicContent } from "../popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
 const ensureHighestQuality = ref(false);
 const clearPlayedVideosManually = ref(false);
+const filterOutNonMusicContent = ref(false);
 
 async function toggleEnsureTheatreMode() {
     const state = await getAutoMixState();
@@ -28,6 +29,13 @@ async function toggleClearPlayedVideosManually() {
     await setAutoMixState(state);
 }
 
+async function toggleFilterOutNonMusicContent() {
+    const state = await getAutoMixState();
+    state.filterOutNonMusicContent = !state.filterOutNonMusicContent;
+    console.log(`AutoMixPopup; filterOutNonMusicContent => ${state.filterOutNonMusicContent}`);
+    await setAutoMixState(state);
+}
+
 async function onClearStateClick() {
     clearAutoMixState();
     onMountedHook();
@@ -43,8 +51,8 @@ function onMountedHook() {
     getClearPlayedVideosManually().then(
         checked => clearPlayedVideosManually.value = checked
     )
-    getClearPlayedVideosManually().then(
-        checked => clearPlayedVideosManually.value = checked
+    getFilterOutNonMusicContent().then(
+        checked => filterOutNonMusicContent.value = checked
     )
 }
 
@@ -66,6 +74,13 @@ onMounted(onMountedHook);
                 <span class="label-text pr-2">Ensure Highest Quality:</span>
                 <input class="checkbox" @click="toggleEnsureHighestQuality" v-model="ensureHighestQuality"
                     name="ensureHighestQuality" type="checkbox" checked="true" />
+            </label>
+        </div>
+        <div class="form-control">
+            <label class="label cursor-pointer mr-auto">
+                <span class="label-text pr-2">Filter out Non-Music Content:</span>
+                <input class="checkbox" @click="toggleFilterOutNonMusicContent" v-model="filterOutNonMusicContent"
+                    name="filterOutNonMusicContent" type="checkbox" checked="true" />
             </label>
         </div>
         <div class="form-control">

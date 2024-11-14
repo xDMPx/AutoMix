@@ -30,13 +30,6 @@ async function toggleEnsureHighestQuality() {
     await setAutoMixState(state);
 }
 
-async function toggleClearPlayedVideosManually() {
-    const state = await getAutoMixState();
-    state.clearPlayedVideosManually = !state.clearPlayedVideosManually;
-    console.log(`AutoMixPopup; clearPlayedVideosManually => ${state.clearPlayedVideosManually}`);
-    await setAutoMixState(state);
-}
-
 async function onClearPlayedVideosClick() {
     await clearPlayedVideos();
     playedVideosCount.value = await getPlayedVideosCount();

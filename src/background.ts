@@ -305,11 +305,16 @@ async function handleRecommendationsLoadedMessage() {
             await setAutoMixState(state);
             await attachVideoEndedListener(state.youtubeTabID!, video_url);
 
-            const res = await chrome.scripting.executeScript({
-                target: { tabId: state.youtubeTabID! },
-                func: extractGenre,
-            });
-            if (res.at(0)?.result !== "Music") {
+            let genre: string | undefined = "Music";
+            if (state.filterOutNonMusicContent === true) {
+                const res = await chrome.scripting.executeScript({
+                    target: { tabId: state.youtubeTabID! },
+                    func: extractGenre,
+                });
+                genre = res.at(0)?.result;
+            }
+
+            if (genre !== "Music") {
                 await chrome.scripting.executeScript({
                     target: { tabId: state.youtubeTabID! },
                     func:

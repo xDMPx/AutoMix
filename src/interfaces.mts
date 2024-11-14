@@ -6,6 +6,7 @@ export interface AutoMixState {
     attachedListener: boolean,
     ensureTheatreMode: boolean,
     ensureHighestQuality: boolean,
+    filterOutNonMusicContent: boolean,
     recommendations: { videoID: string, title: string }[],
     recommendationsArrayMaxSize: number,
     nextVideoId: string | null,

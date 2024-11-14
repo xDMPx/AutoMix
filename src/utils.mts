@@ -11,6 +11,7 @@ export async function getAutoMixState(): Promise<AutoMixState> {
             attachedListener: false,
             ensureTheatreMode: false,
             ensureHighestQuality: false,
+            filterOutNonMusicContent: true,
             recommendations: [],
             recommendationsArrayMaxSize: 128,
             nextVideoId: null,

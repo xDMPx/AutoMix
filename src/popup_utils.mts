@@ -27,6 +27,11 @@ export async function getClearPlayedVideosManually(): Promise<boolean> {
     return state.clearPlayedVideosManually;
 }
 
+export async function getFilterOutNonMusicContent(): Promise<boolean> {
+    const state = await getAutoMixState();
+    return state.filterOutNonMusicContent;
+}
+
 export function navigateToUrl(url: string) {
     chrome.tabs.create({ url: url });
 }
