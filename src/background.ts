@@ -2,6 +2,7 @@ import { VideoEndMessage, Message, PopupMessage } from "./interfaces.mjs";
 import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec } from "./utils.mjs";
 import { extractRecommendations } from "./scripts/extract_recommendations.mjs";
 import { addVideoEndedListener } from "./scripts/add_video_ended_listener.mjs";
+import { extractGenre } from "./scripts/extract_genre.mjs";
 
 console.log(`AutoMix; start => ${Date.now()}`);
 
@@ -123,7 +124,7 @@ chrome.commands.onCommand.addListener(async (command: string) => {
                     const video = document.querySelectorAll('video')[0];
                     video.currentTime = video.duration - 1;
                 }
-        })
+        });
     }
     if (command == "toggleTheatreMode") {
         state.ensureTheatreMode = !state.ensureTheatreMode;
@@ -303,6 +304,22 @@ async function handleRecommendationsLoadedMessage() {
             state.nextVideoTitle = video_title;
             await setAutoMixState(state);
             await attachVideoEndedListener(state.youtubeTabID!, video_url);
+
+            const res = await chrome.scripting.executeScript({
+                target: { tabId: state.youtubeTabID! },
+                func: extractGenre,
+            });
+            if (res.at(0)?.result !== "Music") {
+                await chrome.scripting.executeScript({
+                    target: { tabId: state.youtubeTabID! },
+                    func:
+                        () => {
+                            const video = document.querySelectorAll('video')[0];
+                            console.log(`AutoMix; Skipping video => ${video.duration}`);
+                            video.currentTime = video.duration - 1;
+                        }
+                });
+            }
         });
     await setAutoMixState(state);
 }
