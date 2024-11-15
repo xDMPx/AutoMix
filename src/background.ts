@@ -89,7 +89,7 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
 
 
     if (changeInfo.status === "loading" && state.attachedListener === true && state.nextVideoId !== null) {
-        attachVideoEndedListener(tabId, state.nextVideoId);
+        attachVideoEndedListener(tabId, videoIdIntoUrl(state.nextVideoId));
     }
 
 })
