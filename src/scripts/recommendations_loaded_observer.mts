@@ -36,7 +36,7 @@ export function recommendationsLoadedObserver(min_recommendations_count: number)
             () => {
 
                 const recommendations_count = getFullyLoadedVideoRecommendationsCount();
-                if (recommendations_count > recommendations_count) {
+                if (recommendations_count > min_recommendations_count) {
                     observer.disconnect();
                     console.log(`AutoMix; Mutation Recommendations loaded => ${recommendations_count}`);
                     const msg: Message = createRecommendationsLoadedMessage();
