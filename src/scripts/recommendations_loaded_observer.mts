@@ -1,32 +1,33 @@
 import { Message } from '../interfaces.mjs';
 
-function getFullyLoadedVideoRecommendationsCount(): number {
-    const elements = document.getElementsByTagName("ytd-compact-video-renderer") as HTMLCollectionOf<HTMLElement>;
-    const elements_array = [...elements];
-    const recommendations = elements_array.filter((e) => {
-        const duration = e.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
-        if (duration === undefined) {
-            return undefined;
-        }
-        return { duration };
+export function recommendationsLoadedObserver(min_recommendations_count: number) {
 
-    }).filter((r) => r !== undefined);
+    const getFullyLoadedVideoRecommendationsCount = () => {
+        const elements = document.getElementsByTagName("ytd-compact-video-renderer") as HTMLCollectionOf<HTMLElement>;
+        const elements_array = [...elements];
+        const recommendations = elements_array.filter((e) => {
+            const duration = e.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
+            if (duration === undefined) {
+                return undefined;
+            }
+            return { duration };
 
-    return recommendations.length;
-}
+        }).filter((r) => r !== undefined);
 
-function createRecommendationsLoadedMessage(): Message {
-    const msg: Message = { recommendationsLoadedMessage: true, videoStartMessage: undefined, videoEndMessage: undefined };
-    return msg;
-}
+        return recommendations.length;
+    }
 
-(() => {
+    const createRecommendationsLoadedMessage = () => {
+        const msg: Message = { recommendationsLoadedMessage: true, videoStartMessage: undefined, videoEndMessage: undefined };
+        return msg;
+    }
+
     if (!document.URL) return;
 
-    console.log(`AutoMix; Ataching recommendations loaded observer`);
+    console.log(`AutoMix; Ataching recommendations loaded observer => ${min_recommendations_count}`);
     const recommendations_count = getFullyLoadedVideoRecommendationsCount();
 
-    if (recommendations_count > 10) {
+    if (recommendations_count > min_recommendations_count) {
         const msg: Message = createRecommendationsLoadedMessage();
         chrome.runtime.sendMessage(msg);
     } else {
@@ -35,7 +36,7 @@ function createRecommendationsLoadedMessage(): Message {
             () => {
 
                 const recommendations_count = getFullyLoadedVideoRecommendationsCount();
-                if (recommendations_count > 10) {
+                if (recommendations_count > recommendations_count) {
                     observer.disconnect();
                     console.log(`AutoMix; Mutation Recommendations loaded => ${recommendations_count}`);
                     const msg: Message = createRecommendationsLoadedMessage();
@@ -44,4 +45,4 @@ function createRecommendationsLoadedMessage(): Message {
             });
         observer.observe(document.body, config);
     }
-})();
+}

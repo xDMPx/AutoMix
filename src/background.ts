@@ -3,6 +3,7 @@ import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, vi
 import { extractRecommendations } from "./scripts/extract_recommendations.mjs";
 import { addVideoEndedListener } from "./scripts/add_video_ended_listener.mjs";
 import { extractGenre } from "./scripts/extract_genre.mjs";
+import { recommendationsLoadedObserver } from "./scripts/recommendations_loaded_observer.mjs";
 
 console.log(`AutoMix; start => ${Date.now()}`);
 
@@ -289,7 +290,8 @@ async function attachRecommendationsLoadedObserver(tabID: number) {
     await attachLoadAllRecommendations(tabID);
     await chrome.scripting.executeScript({
         target: { tabId: tabID },
-        files: ["recommendations_loaded_observer.js"],
+        func: recommendationsLoadedObserver,
+        args: [10],
     });
 }
 
