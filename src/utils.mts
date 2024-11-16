@@ -26,6 +26,26 @@ export async function clearAutoMixState() {
     await chrome.storage.local.remove("state");
 }
 
+export async function clearAutoMixStatePreservingSettings() {
+    console.log("AutoMix; state clear, but preserving settings");
+    const old_state = await getAutoMixState();
+    clearAutoMixState();
+    const new_state = await getAutoMixState();
+    if (old_state.ensureTheatreMode !== undefined) {
+        new_state.ensureTheatreMode = old_state.ensureTheatreMode;
+    }
+    if (old_state.ensureTheatreMode !== undefined) {
+        new_state.ensureHighestQuality = old_state.ensureHighestQuality;
+    }
+    if (old_state.ensureTheatreMode !== undefined) {
+        new_state.clearPlayedVideosManually = old_state.clearPlayedVideosManually;
+    }
+    if (old_state.filterOutNonMusicContent !== undefined) {
+        new_state.filterOutNonMusicContent = old_state.filterOutNonMusicContent;
+    }
+    await setAutoMixState(new_state);
+}
+
 export async function setAutoMixState(state: AutoMixState) {
     await chrome.storage.local.set({ state: state });
 }

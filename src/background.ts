@@ -1,5 +1,5 @@
 import { VideoEndMessage, Message, PopupMessage } from "./interfaces.mjs";
-import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec } from "./utils.mjs";
+import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec, clearAutoMixStatePreservingSettings } from "./utils.mjs";
 import { extractRecommendations } from "./scripts/extract_recommendations.mjs";
 import { addVideoEndedListener } from "./scripts/add_video_ended_listener.mjs";
 import { extractGenre } from "./scripts/extract_genre.mjs";
@@ -10,23 +10,7 @@ console.log(`AutoMix; start => ${Date.now()}`);
 chrome.runtime.onInstalled.addListener(async (details: chrome.runtime.InstalledDetails) => {
     console.log(details);
     if (details.reason === "update") {
-        console.log("AutoMix; state clear, but preserving settings");
-        const old_state = await getAutoMixState();
-        clearAutoMixState();
-        const new_state = await getAutoMixState();
-        if (old_state.ensureTheatreMode !== undefined) {
-            new_state.ensureTheatreMode = old_state.ensureTheatreMode;
-        }
-        if (old_state.ensureTheatreMode !== undefined) {
-            new_state.ensureHighestQuality = old_state.ensureHighestQuality;
-        }
-        if (old_state.ensureTheatreMode !== undefined) {
-            new_state.clearPlayedVideosManually = old_state.clearPlayedVideosManually;
-        }
-        if (old_state.filterOutNonMusicContent !== undefined) {
-            new_state.filterOutNonMusicContent = old_state.filterOutNonMusicContent;
-        }
-        await setAutoMixState(new_state);
+        clearAutoMixStatePreservingSettings();
     }
 });
 
@@ -40,17 +24,9 @@ chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
             if (tab === undefined) {
                 console.log(`AutoMix; Clearing old state => `);
                 console.log(state);
-                clearAutoMixState();
-                const ensure_theatre_mode = state.ensureTheatreMode;
-                const ensure_highest_quality = state.ensureHighestQuality;
-                const clear_played_videos_manually = state.clearPlayedVideosManually;
-                const filterOutNonMusicContent = state.filterOutNonMusicContent;
+                clearAutoMixStatePreservingSettings();
                 const new_state = await getAutoMixState();
-                new_state.ensureTheatreMode = ensure_theatre_mode;
-                new_state.ensureHighestQuality = ensure_highest_quality;
-                new_state.clearPlayedVideosManually = clear_played_videos_manually;
-                new_state.filterOutNonMusicContent = filterOutNonMusicContent;
-                if (clear_played_videos_manually === true) {
+                if (new_state.clearPlayedVideosManually === true) {
                     new_state.playedVideos = state.playedVideos;
                 }
                 await setAutoMixState(new_state);
