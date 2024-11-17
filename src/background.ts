@@ -1,5 +1,5 @@
 import { VideoEndMessage, Message, PopupMessage } from "./interfaces.mjs";
-import { getAutoMixState, clearAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec, clearAutoMixStatePreservingSettings } from "./utils.mjs";
+import { getAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec, clearAutoMixStatePreservingSettings } from "./utils.mjs";
 import { extractRecommendations } from "./scripts/extract_recommendations.mjs";
 import { addVideoEndedListener } from "./scripts/add_video_ended_listener.mjs";
 import { extractGenre } from "./scripts/extract_genre.mjs";
@@ -119,14 +119,7 @@ chrome.commands.onCommand.addListener(async (command: string) => {
 
     console.log(`AutoMix; Command => ${command}`);
     if (command == "playNext") {
-        await chrome.scripting.executeScript({
-            target: { tabId: state.youtubeTabID },
-            func:
-                () => {
-                    const video = document.querySelectorAll('video')[0];
-                    video.currentTime = video.duration - 1;
-                }
-        });
+        skipToEndOfVideo(state.youtubeTabID);
     }
     if (command == "toggleTheatreMode") {
         state.ensureTheatreMode = !state.ensureTheatreMode;
@@ -279,6 +272,18 @@ async function attachLoadAllRecommendations(tabID: number) {
     });
 }
 
+async function skipToEndOfVideo(tabId: number) {
+    await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        func:
+            () => {
+                const video = document.querySelectorAll('video')[0];
+                console.log(`AutoMix; Skipping video => ${video.duration}`);
+                video.currentTime = video.duration - 1;
+            }
+    });
+}
+
 async function handleVideoStartMessage() {
     const state = await getAutoMixState();
     if (state.youtubeTabID === undefined) return;
@@ -318,15 +323,7 @@ async function handleRecommendationsLoadedMessage() {
             }
 
             if (genre !== "Music") {
-                await chrome.scripting.executeScript({
-                    target: { tabId: state.youtubeTabID! },
-                    func:
-                        () => {
-                            const video = document.querySelectorAll('video')[0];
-                            console.log(`AutoMix; Skipping video => ${video.duration}`);
-                            video.currentTime = video.duration - 1;
-                        }
-                });
+                skipToEndOfVideo(state.youtubeTabID!);
             }
         });
     await setAutoMixState(state);
