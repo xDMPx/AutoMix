@@ -50,6 +50,9 @@ chrome.tabs.onRemoved.addListener(async (tabId: number) => {
         state.nextVideoId = null;
         state.nextVideoTitle = null;
         state.recommendations = [];
+        if (state.clearPlayedVideosManually !== true) {
+            state.playedVideos = [];
+        }
         await setAutoMixState(state);
         console.log(`AutoMix; YouTubeTabID => ${state.youtubeTabID}`);
         console.log(state.playedVideos);
