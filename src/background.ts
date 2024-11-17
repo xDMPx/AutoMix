@@ -287,6 +287,19 @@ async function skipToEndOfVideo(tabId: number) {
     });
 }
 
+async function extractVidoeGenre(tabId: number): Promise<string | undefined> {
+    const state = await getAutoMixState();
+    if (state.filterOutNonMusicContent === true) {
+        const res = await chrome.scripting.executeScript({
+            target: { tabId: tabId! },
+            func: extractGenre,
+        });
+        return res.at(0)?.result;
+    }
+
+    return "Music";
+}
+
 async function handleVideoStartMessage() {
     const state = await getAutoMixState();
     if (state.youtubeTabID === undefined) return;
@@ -316,15 +329,7 @@ async function handleRecommendationsLoadedMessage() {
             await setAutoMixState(state);
             await attachVideoEndedListener(state.youtubeTabID!, video_url);
 
-            let genre: string | undefined = "Music";
-            if (state.filterOutNonMusicContent === true) {
-                const res = await chrome.scripting.executeScript({
-                    target: { tabId: state.youtubeTabID! },
-                    func: extractGenre,
-                });
-                genre = res.at(0)?.result;
-            }
-
+            const genre = await extractVidoeGenre(state.youtubeTabID!);
             if (genre !== "Music") {
                 skipToEndOfVideo(state.youtubeTabID!);
             }
