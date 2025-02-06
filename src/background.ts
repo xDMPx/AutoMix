@@ -15,9 +15,21 @@ chrome.runtime.onInstalled.addListener(async (details: chrome.runtime.InstalledD
 });
 
 chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
-    if (tab.url !== undefined || tab.pendingUrl !== undefined) {
-        const url = (tab.url ?? tab.pendingUrl) as string;
+    let url = (tab.url ?? tab.pendingUrl);
 
+    // Firefox
+    if (tab.url === "about:blank") {
+        url = undefined;
+    }
+    if (tab.status === "complete" && tab.id !== undefined && url === undefined) {
+        const new_tab = await chrome.tabs.get(tab.id);
+        url = new_tab.title;
+        if (!url?.startsWith("https://www.")) {
+            url = `https://www.${url}`
+        }
+    }
+
+    if (url !== undefined) {
         let state = await getAutoMixState();
         if (state.youtubeTabID !== undefined) {
             const tab = await chrome.tabs.get(state.youtubeTabID).catch(_e => undefined);
