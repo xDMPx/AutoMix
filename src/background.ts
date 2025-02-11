@@ -15,7 +15,7 @@ chrome.runtime.onInstalled.addListener(async (details: chrome.runtime.InstalledD
 });
 
 chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
-    let url = (tab.url ?? tab.pendingUrl);
+    let url = tab.url || tab.pendingUrl || undefined;
 
     // Firefox
     if (tab.url === "about:blank") {
@@ -25,7 +25,7 @@ chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
         const new_tab = await chrome.tabs.get(tab.id);
         url = new_tab.title;
         if (!url?.startsWith("https://www.")) {
-            url = `https://www.${url}`
+            url = `https://www.${url}`;
         }
     }
 
