@@ -34,5 +34,10 @@
             },
             "description": "Toggle theatre mode enforcement"
         }
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{632a7b71-85ce-4841-983f-3aab02d58839}"
+        }
     }
 }
