@@ -1,3 +1,4 @@
+import browser from "webextension-polyfill";
 import { VideoEndMessage, Message, PopupMessage } from "./interfaces.mjs";
 import { getAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec, clearAutoMixStatePreservingSettings } from "./utils.mjs";
 import { extractRecommendations } from "./scripts/extract_recommendations.mjs";
@@ -7,14 +8,14 @@ import { recommendationsLoadedObserver } from "./scripts/recommendations_loaded_
 
 console.log(`AutoMix; start => ${Date.now()}`);
 
-chrome.runtime.onInstalled.addListener(async (details: chrome.runtime.InstalledDetails) => {
+browser.runtime.onInstalled.addListener(async (details: browser.Runtime.OnInstalledDetailsType) => {
     console.log(details);
     if (details.reason === "update") {
         clearAutoMixStatePreservingSettings();
     }
 });
 
-chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
+browser.tabs.onCreated.addListener(async (tab: browser.Tabs.Tab) => {
     let url = tab.url || tab.pendingUrl || undefined;
 
     // Firefox
@@ -22,7 +23,7 @@ chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
         url = undefined;
     }
     if (tab.status === "complete" && tab.id !== undefined && url === undefined) {
-        const new_tab = await chrome.tabs.get(tab.id);
+        const new_tab = await browser.tabs.get(tab.id);
         url = new_tab.title;
         if (!url?.startsWith("https://www.")) {
             url = `https://www.${url}`;
@@ -32,7 +33,7 @@ chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
     if (url !== undefined) {
         let state = await getAutoMixState();
         if (state.youtubeTabID !== undefined) {
-            const tab = await chrome.tabs.get(state.youtubeTabID).catch(_e => undefined);
+            const tab = await browser.tabs.get(state.youtubeTabID).catch(_e => undefined);
             if (tab === undefined) {
                 console.log(`AutoMix; Clearing old state => `);
                 console.log(state);
@@ -54,7 +55,7 @@ chrome.tabs.onCreated.addListener(async (tab: chrome.tabs.Tab) => {
     }
 })
 
-chrome.tabs.onRemoved.addListener(async (tabId: number) => {
+browser.tabs.onRemoved.addListener(async (tabId: number) => {
     const state = await getAutoMixState();
     if (tabId === state.youtubeTabID) {
         state.youtubeTabID = undefined;
@@ -71,17 +72,17 @@ chrome.tabs.onRemoved.addListener(async (tabId: number) => {
     }
 })
 
-chrome.tabs.onActivated.addListener(async (activeInfo: chrome.tabs.TabActiveInfo) => {
+browser.tabs.onActivated.addListener(async (activeInfo: browser.Tabs.OnActivatedActiveInfoType) => {
     const state = await getAutoMixState();
-    if (activeInfo.tabId === state.youtubeTabID) chrome.action.setBadgeText({ tabId: state.youtubeTabID, text: "ON" });
-    else chrome.action.setBadgeText({ text: "" });
+    if (activeInfo.tabId === state.youtubeTabID) browser.action.setBadgeText({ tabId: state.youtubeTabID, text: "ON" });
+    else browser.action.setBadgeText({ text: "" });
 })
 
-chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
+browser.tabs.onUpdated.addListener(async (tabId: number, changeInfo: browser.Tabs.OnUpdatedChangeInfoType) => {
     const state = await getAutoMixState();
     if (tabId !== state.youtubeTabID) return;
 
-    chrome.action.setBadgeText({ tabId: state.youtubeTabID, text: "ON" });
+    browser.action.setBadgeText({ tabId: state.youtubeTabID, text: "ON" });
 
     if (changeInfo.url !== undefined) {
         const url = changeInfo.url;
@@ -111,7 +112,8 @@ chrome.tabs.onUpdated.addListener(async (tabId: number, changeInfo: chrome.tabs.
 
 })
 
-chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse) => {
+browser.runtime.onMessage.addListener(async (_msg, _sender, _sendResponse) => {
+    const msg = _msg as Message;
     const state = await getAutoMixState();
     if (state.youtubeTabID === undefined) return;
     if (msg.videoStartMessage) {
@@ -128,7 +130,7 @@ chrome.runtime.onMessage.addListener(async (msg: Message, _sender, _sendResponse
     }
 });
 
-chrome.commands.onCommand.addListener(async (command: string) => {
+browser.commands.onCommand.addListener(async (command: string) => {
     const state = await getAutoMixState();
     if (state.youtubeTabID === undefined || state.attachedListener === false) return;
 
@@ -139,18 +141,18 @@ chrome.commands.onCommand.addListener(async (command: string) => {
     if (command == "toggleTheatreMode") {
         state.ensureTheatreMode = !state.ensureTheatreMode;
         const msg: PopupMessage = { ensureTheatreMode: state.ensureTheatreMode };
-        await chrome.runtime.sendMessage(msg).catch((_e) => { });
+        await browser.runtime.sendMessage(msg).catch((_e) => { });
         await setAutoMixState(state);
     }
 });
 
 async function getRandomRecommendation(tabID: number): Promise<{ url: string, title: string }> {
-    const res = await chrome.scripting.executeScript({
+    const res = await browser.scripting.executeScript({
         target: { tabId: tabID },
         func: extractRecommendations,
     });
 
-    const recommendations = res.at(0)?.result;
+    const recommendations = res.at(0)?.result as { video_url: string; video_title: string; duration: string; }[] | undefined;
     console.log(`AutoMix; recommendations => ${recommendations?.length}`);
     if (recommendations !== undefined && recommendations !== null) {
         const state = await getAutoMixState();
@@ -225,7 +227,7 @@ async function getRandomRecommendation(tabID: number): Promise<{ url: string, ti
 
 async function navigateToNextVideo(tabID: number, nextVideoUrl: string) {
     console.log(`AutoMix; Navigating to next video => ${nextVideoUrl}`);
-    chrome.tabs.update(tabID, { url: nextVideoUrl });
+    browser.tabs.update(tabID, { url: nextVideoUrl });
 
     const state = await getAutoMixState();
     state.attachedListener = false;
@@ -234,7 +236,7 @@ async function navigateToNextVideo(tabID: number, nextVideoUrl: string) {
 
 async function attachVideoEndedListener(tabID: number, nextVideoUrl: string) {
     console.log(`AutoMix; Ataching ended event listener`);
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
         target: { tabId: tabID },
         func: addVideoEndedListener,
         args: [nextVideoUrl]
@@ -242,21 +244,21 @@ async function attachVideoEndedListener(tabID: number, nextVideoUrl: string) {
 }
 
 async function disableAutoplay(tabID: number) {
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
         target: { tabId: tabID },
         files: ["disable_autoplay.js"],
     });
 }
 
 async function ensureTheatreMode(tabID: number) {
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
         target: { tabId: tabID },
         files: ["ensure_theatre_mode.js"],
     });
 }
 
 async function ensureHighestQuality(tabID: number) {
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
         target: { tabId: tabID },
         world: "MAIN",
         files: ["ensure_highest_quality.js"],
@@ -264,7 +266,7 @@ async function ensureHighestQuality(tabID: number) {
 }
 
 async function attachVideoLoadedObserver(tabID: number) {
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
         target: { tabId: tabID },
         files: ["video_loaded_observer.js"],
     });
@@ -272,7 +274,7 @@ async function attachVideoLoadedObserver(tabID: number) {
 
 async function attachRecommendationsLoadedObserver(tabID: number) {
     await attachLoadAllRecommendations(tabID);
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
         target: { tabId: tabID },
         func: recommendationsLoadedObserver,
         args: [10],
@@ -280,7 +282,7 @@ async function attachRecommendationsLoadedObserver(tabID: number) {
 }
 
 async function attachLoadAllRecommendations(tabID: number) {
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
         target: { tabId: tabID },
         world: "MAIN",
         files: ["load_all_recommendations.js"],
@@ -288,7 +290,7 @@ async function attachLoadAllRecommendations(tabID: number) {
 }
 
 async function skipToEndOfVideo(tabId: number) {
-    await chrome.scripting.executeScript({
+    await browser.scripting.executeScript({
         target: { tabId: tabId },
         func:
             () => {
@@ -302,11 +304,12 @@ async function skipToEndOfVideo(tabId: number) {
 async function extractVidoeGenre(tabId: number): Promise<string | undefined> {
     const state = await getAutoMixState();
     if (state.filterOutNonMusicContent === true) {
-        const res = await chrome.scripting.executeScript({
+        const res = await browser.scripting.executeScript({
             target: { tabId: tabId! },
             func: extractGenre,
         });
-        return res.at(0)?.result;
+        const result = res.at(0)?.result as string | undefined;
+        return result;
     }
 
     return "Music";

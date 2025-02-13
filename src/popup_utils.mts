@@ -1,3 +1,4 @@
+import browser from "webextension-polyfill";
 import { getAutoMixState, setAutoMixState } from "./utils.mjs";
 
 export async function clearPlayedVideos() {
@@ -33,7 +34,7 @@ export async function getFilterOutNonMusicContent(): Promise<boolean> {
 }
 
 export function navigateToUrl(url: string) {
-    chrome.tabs.create({ url: url });
+    browser.tabs.create({ url: url });
 }
 
 export function videoIdIntoThumbnailUrl(videoID: string): string {

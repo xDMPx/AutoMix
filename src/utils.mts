@@ -1,7 +1,8 @@
+import browser from "webextension-polyfill";
 import { AutoMixState } from "./interfaces.mjs";
 
 export async function getAutoMixState(): Promise<AutoMixState> {
-    let { state }: { [key: string]: AutoMixState | undefined } = await chrome.storage.local.get("state");
+    let { state } = await browser.storage.local.get("state") as { [key: string]: AutoMixState | undefined };
     if (state == undefined) {
         state = {
             youtubeTabID: undefined,
@@ -23,7 +24,7 @@ export async function getAutoMixState(): Promise<AutoMixState> {
 }
 
 export async function clearAutoMixState() {
-    await chrome.storage.local.remove("state");
+    await browser.storage.local.remove("state");
 }
 
 export async function clearAutoMixStatePreservingSettings() {
@@ -47,7 +48,7 @@ export async function clearAutoMixStatePreservingSettings() {
 }
 
 export async function setAutoMixState(state: AutoMixState) {
-    await chrome.storage.local.set({ state: state });
+    await browser.storage.local.set({ state: state });
 }
 
 export function extractVideoId(url: string): string | undefined {

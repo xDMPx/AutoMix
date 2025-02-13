@@ -1,3 +1,4 @@
+import browser from "webextension-polyfill";
 import { Message } from "../interfaces.mjs";
 
 
@@ -12,11 +13,11 @@ export function addVideoEndedListener(nextVideoUrl: string) {
                 console.log(`AutoMix; ${e}`);
 
                 const msg: Message = { videoEndMessage: { ended: true, nextVideoUrl: nextVideoUrl }, videoStartMessage: undefined, recommendationsLoadedMessage: undefined };
-                chrome.runtime.sendMessage(msg);
+                browser.runtime.sendMessage(msg);
             });
     }
     else {
         const msg: Message = { videoEndMessage: { ended: true, nextVideoUrl: nextVideoUrl }, videoStartMessage: undefined, recommendationsLoadedMessage: undefined };
-        chrome.runtime.sendMessage(msg);
+        browser.runtime.sendMessage(msg);
     }
 }

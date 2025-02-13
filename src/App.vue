@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import browser from "webextension-polyfill";
 import { ref, onMounted } from 'vue';
 import { PopupMessage } from "./interfaces.mjs";
 import { getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
@@ -10,7 +11,8 @@ const nextVideoId = ref("");
 const nextVideoTitle = ref("");
 const playedVideosCount = ref(0);
 
-chrome.runtime.onMessage.addListener(async (msg: PopupMessage, _sender, _sendResponse) => {
+browser.runtime.onMessage.addListener(async (_msg, _sender, _sendResponse) => {
+    const msg = _msg as PopupMessage;
     console.log(`AutoMixPopup; Vue Message => `);
     console.log(msg);
     if (msg.ensureTheatreMode !== undefined) ensureTheatreMode.value = msg.ensureTheatreMode;

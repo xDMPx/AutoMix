@@ -1,3 +1,4 @@
+import browser from "webextension-polyfill";
 import { Message } from "../interfaces.mjs";
 
 function createVideoStartMessage(): Message {
@@ -12,7 +13,7 @@ function createVideoStartMessage(): Message {
     const video_elements = document.querySelectorAll('video');
     if (video_elements.length > 0) {
         const msg = createVideoStartMessage();
-        chrome.runtime.sendMessage(msg);
+        browser.runtime.sendMessage(msg);
     } else {
         const config = { attributes: true, childList: true, subtree: true };
         const observer = new MutationObserver(() => {
@@ -21,7 +22,7 @@ function createVideoStartMessage(): Message {
                 observer.disconnect();
                 console.log(`AutoMix; Video loaded`);
                 const msg = createVideoStartMessage();
-                chrome.runtime.sendMessage(msg);
+                browser.runtime.sendMessage(msg);
             }
         });
         observer.observe(document.body, config);
