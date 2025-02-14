@@ -1,6 +1,4 @@
-import browser from "webextension-polyfill";
 import { Message } from '../interfaces.mjs';
-
 
 export function recommendationsLoadedObserver(min_recommendations_count: number) {
 
@@ -31,7 +29,7 @@ export function recommendationsLoadedObserver(min_recommendations_count: number)
 
     if (recommendations_count > min_recommendations_count) {
         const msg: Message = createRecommendationsLoadedMessage();
-        browser.runtime.sendMessage(msg);
+        chrome.runtime.sendMessage(msg);
     } else {
         const config = { attributes: true, childList: true, subtree: true };
         const observer = new MutationObserver(
@@ -42,7 +40,7 @@ export function recommendationsLoadedObserver(min_recommendations_count: number)
                     observer.disconnect();
                     console.log(`AutoMix; Mutation Recommendations loaded => ${recommendations_count}`);
                     const msg: Message = createRecommendationsLoadedMessage();
-                    browser.runtime.sendMessage(msg);
+                    chrome.runtime.sendMessage(msg);
                 }
             });
         observer.observe(document.body, config);
