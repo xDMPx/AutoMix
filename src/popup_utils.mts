@@ -18,6 +18,11 @@ export async function getEnsureTheatreModeValue(): Promise<boolean> {
     return state.ensureTheatreMode;
 }
 
+export async function getHideYouTubeUI(): Promise<boolean> {
+    const state = await getAutoMixState();
+    return state.hideYouTubeUI;
+}
+
 export async function getEnsureHighestQualityValue(): Promise<boolean> {
     const state = await getAutoMixState();
     return state.ensureHighestQuality;

@@ -12,6 +12,7 @@ export async function getAutoMixState(): Promise<AutoMixState> {
             attachedListener: false,
             ensureTheatreMode: false,
             ensureHighestQuality: false,
+            hideYouTubeUI: false,
             filterOutNonMusicContent: true,
             recommendations: [],
             recommendationsArrayMaxSize: 128,
@@ -43,6 +44,9 @@ export async function clearAutoMixStatePreservingSettings() {
     }
     if (old_state.filterOutNonMusicContent !== undefined) {
         new_state.filterOutNonMusicContent = old_state.filterOutNonMusicContent;
+    }
+    if (old_state.hideYouTubeUI !== undefined) {
+        new_state.hideYouTubeUI = old_state.hideYouTubeUI;
     }
     await setAutoMixState(new_state);
 }
