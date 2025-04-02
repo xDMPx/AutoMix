@@ -1,3 +1,4 @@
+import browser from "webextension-polyfill";
 import { getAutoMixState, setAutoMixState } from "./utils.mjs";
 
 export async function clearPlayedVideos() {
@@ -17,6 +18,11 @@ export async function getEnsureTheatreModeValue(): Promise<boolean> {
     return state.ensureTheatreMode;
 }
 
+export async function getHideYouTubeUI(): Promise<boolean> {
+    const state = await getAutoMixState();
+    return state.hideYouTubeUI;
+}
+
 export async function getEnsureHighestQualityValue(): Promise<boolean> {
     const state = await getAutoMixState();
     return state.ensureHighestQuality;
@@ -33,7 +39,7 @@ export async function getFilterOutNonMusicContent(): Promise<boolean> {
 }
 
 export function navigateToUrl(url: string) {
-    chrome.tabs.create({ url: url });
+    browser.tabs.create({ url: url });
 }
 
 export function videoIdIntoThumbnailUrl(videoID: string): string {

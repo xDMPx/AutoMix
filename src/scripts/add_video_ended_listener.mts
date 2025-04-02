@@ -1,6 +1,5 @@
 import { Message } from "../interfaces.mjs";
 
-
 export function addVideoEndedListener(nextVideoUrl: string) {
     const video = document.querySelectorAll('video')[0];
 

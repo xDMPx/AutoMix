@@ -2,8 +2,9 @@
     "manifest_version": 3,
     "name": "AutoMix",
     "description": "Hands-Free Music Binge",
-    "version": "0.1.0",
+    "version": "0.1.12",
     "background": {
+        "scripts": ["background.js"],
         "service_worker": "background.js"
     },
     "action": {
@@ -12,7 +13,11 @@
     "options_ui": {
         "page": "options.html"
     },
-    "permissions": ["scripting", "storage"],
+    "permissions": [
+        "tabs",
+        "scripting",
+        "storage"
+    ],
     "host_permissions": [
         "https://www.youtube.com/*"
     ],
@@ -28,6 +33,11 @@
                 "default": "Ctrl+Shift+Y"
             },
             "description": "Toggle theatre mode enforcement"
+        }
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{632a7b71-85ce-4841-983f-3aab02d58839}"
         }
     }
 }
