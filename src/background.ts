@@ -188,10 +188,8 @@ async function getRandomRecommendation(tabID: number): Promise<{ url: string, ti
                 new_recommendations[i] = { videoID: extractVideoId(recommendation.video_url)!, title: recommendation.video_title };
             }
         } else {
-            new_recommendations.concat(
-                valid_recommendations.map(
-                    x => { return { videoID: extractVideoId(x.video_url)!, title: x.video_title } }
-                )
+            new_recommendations.push(
+                ...valid_recommendations.map(x => { return { videoID: extractVideoId(x.video_url)!, title: x.video_title } })
             );
         }
 
