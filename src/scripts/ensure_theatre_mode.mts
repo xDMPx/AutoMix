@@ -4,8 +4,8 @@ function ensureTheatreMode(ytd_watch_flexy: Element) {
     const theatre_attribute = ytd_watch_attributes.find((a) => a.name === 'theater' || a.name === 'theater-requested_');
     if (theatre_attribute === undefined) {
         const ytp_right_controls = document.getElementsByClassName('ytp-right-controls')[0];
-        const theatre_button = ytp_right_controls.childNodes[6] as HTMLElement;
-        theatre_button.click();
+        const theatre_button = [...ytp_right_controls.childNodes].map((n) => n as HTMLElement).find((n) => n.ariaKeyShortcuts == 't');
+        theatre_button?.click();
         // Firefox bug, workaround
         // TODO: Find proper solution
         setTimeout(() => {
@@ -14,8 +14,8 @@ function ensureTheatreMode(ytd_watch_flexy: Element) {
             if (theatre_attribute === undefined) {
                 console.log(`AutoMix; Delayed ensuring of theatre mode`);
                 const ytp_right_controls = document.getElementsByClassName('ytp-right-controls')[0];
-                const theatre_button = ytp_right_controls.childNodes[6] as HTMLElement;
-                theatre_button.click();
+                const theatre_button = [...ytp_right_controls.childNodes].map((n) => n as HTMLElement).find((n) => n.ariaKeyShortcuts == 't');
+                theatre_button?.click();
             }
         }, 1000);
     }
