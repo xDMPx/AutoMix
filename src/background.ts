@@ -1,4 +1,4 @@
-import browser from "webextension-polyfill";
+import browser, { Runtime } from "webextension-polyfill";
 import { VideoEndMessage, Message, PopupMessage } from "./interfaces.mjs";
 import { getAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec, clearAutoMixStatePreservingSettings } from "./utils.mjs";
 import { extractRecommendations } from "./scripts/extract_recommendations.mjs";
@@ -112,7 +112,7 @@ browser.tabs.onUpdated.addListener(async (tabId: number, changeInfo: browser.Tab
 
 })
 
-browser.runtime.onMessage.addListener(async (_msg, _sender, _sendResponse) => {
+browser.runtime.onMessage.addListener(async (_msg: unknown, _sender: Runtime.MessageSender) => {
     const msg = _msg as Message;
     const state = await getAutoMixState();
     if (state.youtubeTabID === undefined) return;
