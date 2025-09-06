@@ -3,7 +3,7 @@ export function extractRecommendations(): {
     video_title: string;
     duration: string;
 }[] | undefined {
-    const elements = document.getElementsByTagName("ytd-compact-video-renderer") as HTMLCollectionOf<HTMLElement>;
+    const elements = document.getElementsByTagName("yt-lockup-view-model") as HTMLCollectionOf<HTMLElement>;
     console.log(`AutoMix; elements =>`);
     console.log(elements);
     if (elements.length === 0) {
@@ -14,8 +14,8 @@ export function extractRecommendations(): {
     const recommendations = elements_array.map(
         (element) => {
             const video_url = element.getElementsByTagName("a").item(0)?.href;
-            const video_title = [...element.getElementsByTagName("span")].find((e) => e.id === "video-title")?.innerText;
-            const duration = element.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
+            const video_title = element.getElementsByTagName("span").item(0)?.innerText;
+            const duration = element.getElementsByClassName("yt-badge-shape__text").item(0)?.innerHTML;
             if (video_url === undefined || duration === undefined || video_title === undefined) {
                 return undefined;
             }
@@ -27,5 +27,6 @@ export function extractRecommendations(): {
         return undefined;
     }
 
+    console.log(recommendations);
     return recommendations;
 }

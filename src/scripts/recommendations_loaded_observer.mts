@@ -3,10 +3,10 @@ import { Message } from '../interfaces.mjs';
 export function recommendationsLoadedObserver(min_recommendations_count: number) {
 
     const getFullyLoadedVideoRecommendationsCount = () => {
-        const elements = document.getElementsByTagName("ytd-compact-video-renderer") as HTMLCollectionOf<HTMLElement>;
+        const elements = document.getElementsByTagName("yt-lockup-view-model") as HTMLCollectionOf<HTMLElement>;
         const elements_array = [...elements];
         const recommendations = elements_array.filter((e) => {
-            const duration = e.getElementsByClassName("badge-shape-wiz__text").item(0)?.innerHTML;
+            const duration = e.getElementsByClassName("yt-badge-shape__text").item(0)?.innerHTML;
             if (duration === undefined) {
                 return undefined;
             }
