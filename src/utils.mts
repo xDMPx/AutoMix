@@ -58,7 +58,8 @@ export async function setAutoMixState(state: AutoMixState) {
 export function extractVideoId(url: string): string | undefined {
     if (url.includes("v=")) {
         const split = url.split("v=");
-        const video_id = split.at(-1);
+        const after_v_value = split.at(-1);
+        const video_id = after_v_value?.split("&").at(0);
         return video_id;
     }
 
