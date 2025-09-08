@@ -248,6 +248,13 @@ async function disableAutoplay(tabID: number) {
     });
 }
 
+async function disableAutoDubbing(tabID: number) {
+    await browser.scripting.executeScript({
+        target: { tabId: tabID },
+        files: ["disable_auto_dubbing.js"],
+    });
+}
+
 async function ensureTheatreMode(tabID: number) {
     await browser.scripting.executeScript({
         target: { tabId: tabID },
@@ -338,6 +345,7 @@ async function handleVideoStartMessage() {
     if (state.hideYouTubeUI) {
         await hideYouTubeUI(state.youtubeTabID);
     }
+    disableAutoDubbing(state.youtubeTabID);
 }
 
 async function handleRecommendationsLoadedMessage() {

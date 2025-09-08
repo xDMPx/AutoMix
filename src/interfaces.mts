@@ -32,6 +32,12 @@ export interface PopupMessage {
 export interface VideoPlayer extends Element {
     getAvailableQualityLevels: () => string[]
     setPlaybackQualityRange: (quality: string) => void
+    getAvailableAudioTracks: () => AudioTrack[]
+    setAudioTrack: (track: AudioTrack) => void
+}
+
+export interface AudioTrack {
+    tq: { id: string, name: string, isDefault: boolean }
 }
 
 export interface YtdContinuationRenderer extends Element {

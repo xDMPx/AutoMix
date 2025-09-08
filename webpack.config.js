@@ -12,6 +12,7 @@ module.exports = {
         ensure_highest_quality: './src/scripts/ensure_highest_quality.mts',
         ensure_theatre_mode: './src/scripts/ensure_theatre_mode.mts',
         disable_autoplay: './src/scripts/disable_autoplay.mts',
+        disable_auto_dubbing: './src/scripts/disable_auto_dubbing.mts',
         load_all_recommendations: './src/scripts/load_all_recommendations.mts',
     },
     module: {
