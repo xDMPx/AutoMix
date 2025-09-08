@@ -3,10 +3,11 @@ import browser, { Runtime } from "webextension-polyfill";
 import { ref, onMounted } from 'vue';
 import { PopupMessage } from "./interfaces.mjs";
 import { getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
-import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl } from "./popup_utils.mjs";
+import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, getHideYouTubeUI, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
 const ensureHighestQuality = ref(false);
+const hideYouTubeUI = ref(false);
 const nextVideoId = ref("");
 const nextVideoTitle = ref("");
 const playedVideosCount = ref(0);
@@ -32,6 +33,13 @@ async function toggleEnsureHighestQuality() {
     await setAutoMixState(state);
 }
 
+async function toggleHideYouTubeUI() {
+    const state = await getAutoMixState();
+    state.hideYouTubeUI = !state.hideYouTubeUI;
+    console.log(`AutoMixPopup; hideYouTubeUI => ${state.hideYouTubeUI}`);
+    await setAutoMixState(state);
+}
+
 async function onClearPlayedVideosClick() {
     await clearPlayedVideos();
     playedVideosCount.value = await getPlayedVideosCount();
@@ -46,6 +54,9 @@ function onMountedHook() {
     );
     getPlayedVideosCount().then(
         count => playedVideosCount.value = count
+    );
+    getHideYouTubeUI().then(
+        (checked) => hideYouTubeUI.value = checked
     );
     getAutoMixState().then(
         (s) => {
@@ -83,6 +94,13 @@ onMounted(onMountedHook);
                 <span class="label-text pr-2">Ensure Highest Quality:</span>
                 <input class="checkbox" @click="toggleEnsureHighestQuality" v-model="ensureHighestQuality"
                     name="ensureHighestQuality" type="checkbox" checked="true" />
+            </label>
+        </div>
+        <div class="form-control">
+            <label class="label cursor-pointer mr-auto">
+                <span class="label-text pr-2">Hide YouTube UI:</span>
+                <input class="checkbox" @click="toggleHideYouTubeUI" v-model="hideYouTubeUI" name="hideYouTubeUI"
+                    type="checkbox" checked="true" />
             </label>
         </div>
         <div class="divider" />
