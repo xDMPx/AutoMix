@@ -53,6 +53,25 @@ async function toggleHideYouTubeUI() {
     sendStateUpdateMessage();
 }
 
+async function onClearTrackedTab() {
+    const state = await getAutoMixState();
+    browser.action.setBadgeText({ tabId: state.youtubeTabID, text: "" });
+    state.youtubeTabID = undefined;
+    state.attachedListener = false;
+    state.nextVideoId = null;
+    state.nextVideoTitle = null;
+    state.recommendations = [];
+    if (state.clearPlayedVideosManually !== true) {
+        state.playedVideos = [];
+    }
+    await setAutoMixState(state);
+
+    console.log(`AutoMixPopup; YouTubeTabID => ${state.youtubeTabID}`);
+    console.log(state.playedVideos);
+
+    onMountedHook();
+}
+
 async function onClearPlayedVideosClick() {
     await clearPlayedVideos();
     playedVideosCount.value = await getPlayedVideosCount();
@@ -122,6 +141,7 @@ onMounted(onMountedHook);
                 <button class="btn btn-sm btn-secondary" @click="onClearPlayedVideosClick">Clear played videos</button>
                 <span class="pl-2"> ({{ playedVideosCount }}) </span>
             </div>
+            <button class="btn btn-sm btn-secondary" @click="onClearTrackedTab">Clear tracked tab</button>
         </div>
     </div>
 </template>
