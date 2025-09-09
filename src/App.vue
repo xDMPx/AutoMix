@@ -11,6 +11,7 @@ const hideYouTubeUI = ref(false);
 const nextVideoId = ref("");
 const nextVideoTitle = ref("");
 const playedVideosCount = ref(0);
+const showClearTrackedTabButton = ref(false);
 
 browser.runtime.onMessage.addListener(async (_msg: unknown, _sender: Runtime.MessageSender) => {
     console.log(`AutoMixPopup; Popup Message => `);
@@ -94,6 +95,7 @@ function onMountedHook() {
         (s) => {
             nextVideoId.value = (s.nextVideoId) ? s.nextVideoId : "";
             nextVideoTitle.value = (s.nextVideoTitle) ? s.nextVideoTitle : "";
+            showClearTrackedTabButton.value = (s.youtubeTabID !== undefined) ? true : false;
         }
     );
 }
@@ -141,7 +143,8 @@ onMounted(onMountedHook);
                 <button class="btn btn-sm btn-secondary" @click="onClearPlayedVideosClick">Clear played videos</button>
                 <span class="pl-2"> ({{ playedVideosCount }}) </span>
             </div>
-            <button class="btn btn-sm btn-secondary" @click="onClearTrackedTab">Clear tracked tab</button>
+            <button v-if="showClearTrackedTabButton" class="btn btn-sm btn-secondary" @click="onClearTrackedTab">Clear
+                tracked tab</button>
         </div>
     </div>
 </template>
