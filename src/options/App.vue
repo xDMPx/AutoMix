@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import browser, { Runtime } from "webextension-polyfill";
 import { ref, onMounted } from 'vue';
 import { clearAutoMixState, getAutoMixState, setAutoMixState } from "../utils.mjs";
 import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getHideYouTubeUI, getClearPlayedVideosManually, getFilterOutNonMusicContent } from "../popup_utils.mjs";
+import { AutoMixStateUpdateMessage } from "../interfaces.mjs";
 
 const ensureTheatreMode = ref(false);
 const ensureHighestQuality = ref(false);
@@ -9,11 +11,26 @@ const hideYouTubeUI = ref(false);
 const clearPlayedVideosManually = ref(false);
 const filterOutNonMusicContent = ref(false);
 
+browser.runtime.onMessage.addListener(async (_msg: unknown, _sender: Runtime.MessageSender) => {
+    console.log(`AutoMixOptions; Options Message => `);
+    console.log(_msg);
+    const msg = _msg as AutoMixStateUpdateMessage;
+    if (msg.source === "popup") {
+        onMountedHook();
+    }
+});
+
+async function sendStateUpdateMessage() {
+    const msg: AutoMixStateUpdateMessage = { source: "options" };
+    chrome.runtime.sendMessage(msg);
+}
+
 async function toggleEnsureTheatreMode() {
     const state = await getAutoMixState();
     state.ensureTheatreMode = !state.ensureTheatreMode;
     console.log(`AutoMixPopup; toggleEnsureTheatreMode => ${state.ensureTheatreMode}`);
     await setAutoMixState(state);
+    sendStateUpdateMessage();
 }
 
 async function toggleEnsureHighestQuality() {
@@ -21,6 +38,7 @@ async function toggleEnsureHighestQuality() {
     state.ensureHighestQuality = !state.ensureHighestQuality;
     console.log(`AutoMixPopup; ensureHighestQuality => ${state.ensureHighestQuality}`);
     await setAutoMixState(state);
+    sendStateUpdateMessage();
 }
 
 async function toggleHideYouTubeUI() {
@@ -28,6 +46,7 @@ async function toggleHideYouTubeUI() {
     state.hideYouTubeUI = !state.hideYouTubeUI;
     console.log(`AutoMixPopup; hideYouTubeUI => ${state.hideYouTubeUI}`);
     await setAutoMixState(state);
+    sendStateUpdateMessage();
 }
 
 async function toggleClearPlayedVideosManually() {
@@ -35,6 +54,7 @@ async function toggleClearPlayedVideosManually() {
     state.clearPlayedVideosManually = !state.clearPlayedVideosManually;
     console.log(`AutoMixPopup; clearPlayedVideosManually => ${state.clearPlayedVideosManually}`);
     await setAutoMixState(state);
+    sendStateUpdateMessage();
 }
 
 async function toggleFilterOutNonMusicContent() {
@@ -42,11 +62,13 @@ async function toggleFilterOutNonMusicContent() {
     state.filterOutNonMusicContent = !state.filterOutNonMusicContent;
     console.log(`AutoMixPopup; filterOutNonMusicContent => ${state.filterOutNonMusicContent}`);
     await setAutoMixState(state);
+    sendStateUpdateMessage();
 }
 
 async function onClearStateClick() {
     clearAutoMixState();
     onMountedHook();
+    sendStateUpdateMessage();
 }
 
 function onMountedHook() {

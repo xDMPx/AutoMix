@@ -29,6 +29,10 @@ export interface PopupMessage {
     ensureTheatreMode: boolean,
 }
 
+export interface AutoMixStateUpdateMessage {
+    source: string,
+}
+
 export interface VideoPlayer extends Element {
     getAvailableQualityLevels: () => string[]
     setPlaybackQualityRange: (quality: string) => void

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import browser, { Runtime } from "webextension-polyfill";
 import { ref, onMounted } from 'vue';
-import { PopupMessage } from "./interfaces.mjs";
+import { AutoMixStateUpdateMessage, PopupMessage } from "./interfaces.mjs";
 import { getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
 import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, getHideYouTubeUI, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl } from "./popup_utils.mjs";
 
@@ -13,17 +13,28 @@ const nextVideoTitle = ref("");
 const playedVideosCount = ref(0);
 
 browser.runtime.onMessage.addListener(async (_msg: unknown, _sender: Runtime.MessageSender) => {
-    const msg = _msg as PopupMessage;
-    console.log(`AutoMixPopup; Vue Message => `);
-    console.log(msg);
-    if (msg.ensureTheatreMode !== undefined) ensureTheatreMode.value = msg.ensureTheatreMode;
+    console.log(`AutoMixPopup; Popup Message => `);
+    console.log(_msg);
+    const pmsg = _msg as PopupMessage;
+    if (pmsg.ensureTheatreMode !== undefined) ensureTheatreMode.value = pmsg.ensureTheatreMode;
+
+    const msg = _msg as AutoMixStateUpdateMessage;
+    if (msg.source === "options") {
+        onMountedHook();
+    }
 });
+
+async function sendStateUpdateMessage() {
+    const msg: AutoMixStateUpdateMessage = { source: "popup" };
+    chrome.runtime.sendMessage(msg);
+}
 
 async function toggleEnsureTheatreMode() {
     const state = await getAutoMixState();
     state.ensureTheatreMode = !state.ensureTheatreMode;
     console.log(`AutoMixPopup; toggleEnsureTheatreMode => ${state.ensureTheatreMode}`);
     await setAutoMixState(state);
+    sendStateUpdateMessage();
 }
 
 async function toggleEnsureHighestQuality() {
@@ -31,6 +42,7 @@ async function toggleEnsureHighestQuality() {
     state.ensureHighestQuality = !state.ensureHighestQuality;
     console.log(`AutoMixPopup; ensureHighestQuality => ${state.ensureHighestQuality}`);
     await setAutoMixState(state);
+    sendStateUpdateMessage();
 }
 
 async function toggleHideYouTubeUI() {
@@ -38,6 +50,7 @@ async function toggleHideYouTubeUI() {
     state.hideYouTubeUI = !state.hideYouTubeUI;
     console.log(`AutoMixPopup; hideYouTubeUI => ${state.hideYouTubeUI}`);
     await setAutoMixState(state);
+    sendStateUpdateMessage();
 }
 
 async function onClearPlayedVideosClick() {
