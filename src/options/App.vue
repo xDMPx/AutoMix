@@ -2,7 +2,7 @@
 import browser, { Runtime } from "webextension-polyfill";
 import { ref, onMounted } from 'vue';
 import { clearAutoMixState, getAutoMixState, setAutoMixState } from "../utils.mjs";
-import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getHideYouTubeUI, getClearPlayedVideosManually, getFilterOutNonMusicContent } from "../popup_utils.mjs";
+import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getHideYouTubeUI, getClearPlayedVideosManually, getFilterOutNonMusicContent, getPlayedVideosArrayMaxSize } from "../popup_utils.mjs";
 import { AutoMixStateUpdateMessage } from "../interfaces.mjs";
 
 const ensureTheatreMode = ref(false);
@@ -10,6 +10,7 @@ const ensureHighestQuality = ref(false);
 const hideYouTubeUI = ref(false);
 const clearPlayedVideosManually = ref(false);
 const filterOutNonMusicContent = ref(false);
+const playedVideosArrayMaxSize = ref(0);
 
 browser.runtime.onMessage.addListener(async (_msg: unknown, _sender: Runtime.MessageSender) => {
     console.log(`AutoMixOptions; Options Message => `);
@@ -65,6 +66,21 @@ async function toggleFilterOutNonMusicContent() {
     sendStateUpdateMessage();
 }
 
+async function onSavePlayedVideosArrayMaxSize() {
+    playedVideosArrayMaxSize.value = +playedVideosArrayMaxSize.value;
+    if (playedVideosArrayMaxSize.value < 16) {
+        playedVideosArrayMaxSize.value = 16;
+    }
+    if (playedVideosArrayMaxSize.value > 1024) {
+        playedVideosArrayMaxSize.value = 1024;
+    }
+    const state = await getAutoMixState();
+    state.playedVideosArrayMaxSize = playedVideosArrayMaxSize.value;
+    console.log(`AutoMixPopup; playedVideosArrayMaxSize => ${state.playedVideosArrayMaxSize}`);
+    await setAutoMixState(state);
+    sendStateUpdateMessage();
+}
+
 async function onClearStateClick() {
     clearAutoMixState();
     onMountedHook();
@@ -83,10 +99,13 @@ function onMountedHook() {
     );
     getClearPlayedVideosManually().then(
         checked => clearPlayedVideosManually.value = checked
-    )
+    );
     getFilterOutNonMusicContent().then(
         checked => filterOutNonMusicContent.value = checked
-    )
+    );
+    getPlayedVideosArrayMaxSize().then(
+        value => playedVideosArrayMaxSize.value = value
+    );
 }
 
 onMounted(onMountedHook);
@@ -128,6 +147,14 @@ onMounted(onMountedHook);
                 <span class="label-text pr-2">Clear Played Videos Manually:</span>
                 <input class="checkbox" @click="toggleClearPlayedVideosManually" v-model="clearPlayedVideosManually"
                     name="clearPlayedVideosManually" type="checkbox" checked="true" />
+            </label>
+        </div>
+        <div class="form-control">
+            <label class="label cursor-pointer mr-auto">
+                <span class="label-text pr-2">Played Videos Array Size:</span>
+                <input class="input max-w-24 p-2" type="text" placeholder="256" v-model="playedVideosArrayMaxSize"
+                    name="playedVideosArrayMaxSize" />
+                <button class="btn btn-sm btn-secondary ml-2" @click="onSavePlayedVideosArrayMaxSize">Save</button>
             </label>
         </div>
         <div class="divider" />

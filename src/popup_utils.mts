@@ -13,6 +13,11 @@ export async function getPlayedVideosCount(): Promise<number> {
     return state.playedVideos.length;
 }
 
+export async function getPlayedVideosArrayMaxSize(): Promise<number> {
+    const state = await getAutoMixState();
+    return state.playedVideosArrayMaxSize;
+}
+
 export async function getEnsureTheatreModeValue(): Promise<boolean> {
     const state = await getAutoMixState();
     return state.ensureTheatreMode;

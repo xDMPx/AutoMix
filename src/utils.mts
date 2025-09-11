@@ -33,6 +33,9 @@ export async function clearAutoMixStatePreservingSettings() {
     const old_state = await getAutoMixState();
     clearAutoMixState();
     const new_state = await getAutoMixState();
+    if (old_state.playedVideosArrayMaxSize !== undefined) {
+        new_state.playedVideosArrayMaxSize = old_state.playedVideosArrayMaxSize;
+    }
     if (old_state.ensureTheatreMode !== undefined) {
         new_state.ensureTheatreMode = old_state.ensureTheatreMode;
     }
@@ -52,6 +55,9 @@ export async function clearAutoMixStatePreservingSettings() {
 }
 
 export async function setAutoMixState(state: AutoMixState) {
+    if (state.playedVideos.length > state.playedVideosArrayMaxSize) {
+        state.playedVideos.splice(state.playedVideosArrayMaxSize);
+    }
     await browser.storage.local.set({ state: state });
 }
 
