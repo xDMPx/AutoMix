@@ -1,6 +1,6 @@
 import browser, { Runtime } from "webextension-polyfill";
 import { VideoEndMessage, Message, PopupMessage } from "./interfaces.mjs";
-import { getAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec, clearAutoMixStatePreservingSettings } from "./utils.mjs";
+import { getAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec, clearAutoMixStatePreservingSettings, clearAutoMixStateTrackedTab } from "./utils.mjs";
 import { extractRecommendations } from "./scripts/extract_recommendations.mjs";
 import { addVideoEndedListener } from "./scripts/add_video_ended_listener.mjs";
 import { extractGenre } from "./scripts/extract_genre.mjs";
@@ -58,15 +58,7 @@ browser.tabs.onCreated.addListener(async (tab: browser.Tabs.Tab) => {
 browser.tabs.onRemoved.addListener(async (tabId: number) => {
     const state = await getAutoMixState();
     if (tabId === state.youtubeTabID) {
-        state.youtubeTabID = undefined;
-        state.attachedListener = false;
-        state.nextVideoId = null;
-        state.nextVideoTitle = null;
-        state.recommendations = [];
-        if (state.clearPlayedVideosManually !== true) {
-            state.playedVideos = [];
-        }
-        await setAutoMixState(state);
+        clearAutoMixStateTrackedTab();
         console.log(`AutoMix; YouTubeTabID => ${state.youtubeTabID}`);
         console.log(state.playedVideos);
     }
@@ -267,15 +259,13 @@ async function hideYouTubeUI(tabID: number) {
         target: { tabId: tabID },
         world: "MAIN",
         func: () => {
-
             setTimeout(() => {
                 console.log(`AutoMix; hideYouTubeUI => ${document.getElementById("columns")?.className}`)
                 document.getElementById("masthead-container")?.style.setProperty("display", "none");
                 document.getElementById("primary")?.style.setProperty("display", "none");
                 document.getElementById("secondary")?.style.setProperty("display", "none");
                 document.getElementById("columns")?.style.setProperty("display", "none");
-
-            }, 1000)
+            }, 1000);
         }
     });
 }

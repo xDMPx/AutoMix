@@ -54,6 +54,21 @@ export async function clearAutoMixStatePreservingSettings() {
     await setAutoMixState(new_state);
 }
 
+
+export async function clearAutoMixStateTrackedTab() {
+    const state = await getAutoMixState();
+    browser.action.setBadgeText({ tabId: state.youtubeTabID, text: "" });
+    state.youtubeTabID = undefined;
+    state.attachedListener = false;
+    state.nextVideoId = null;
+    state.nextVideoTitle = null;
+    state.recommendations = [];
+    if (state.clearPlayedVideosManually !== true) {
+        state.playedVideos = [];
+    }
+    await setAutoMixState(state);
+}
+
 export async function setAutoMixState(state: AutoMixState) {
     if (state.playedVideos.length > state.playedVideosArrayMaxSize) {
         state.playedVideos.splice(state.playedVideosArrayMaxSize);

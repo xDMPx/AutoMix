@@ -2,7 +2,7 @@
 import browser, { Runtime } from "webextension-polyfill";
 import { ref, onMounted } from 'vue';
 import { AutoMixStateUpdateMessage, PopupMessage } from "./interfaces.mjs";
-import { getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
+import { clearAutoMixState, clearAutoMixStateTrackedTab, getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
 import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, getHideYouTubeUI, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
@@ -55,18 +55,9 @@ async function toggleHideYouTubeUI() {
 }
 
 async function onClearTrackedTab() {
-    const state = await getAutoMixState();
-    browser.action.setBadgeText({ tabId: state.youtubeTabID, text: "" });
-    state.youtubeTabID = undefined;
-    state.attachedListener = false;
-    state.nextVideoId = null;
-    state.nextVideoTitle = null;
-    state.recommendations = [];
-    if (state.clearPlayedVideosManually !== true) {
-        state.playedVideos = [];
-    }
-    await setAutoMixState(state);
+    await clearAutoMixStateTrackedTab();
 
+    const state = await getAutoMixState();
     console.log(`AutoMixPopup; YouTubeTabID => ${state.youtubeTabID}`);
     console.log(state.playedVideos);
 
