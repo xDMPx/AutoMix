@@ -4,6 +4,7 @@ import { getAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durat
 import { extractRecommendations } from "./scripts/extract_recommendations.mjs";
 import { addVideoEndedListener } from "./scripts/add_video_ended_listener.mjs";
 import { extractGenre } from "./scripts/extract_genre.mjs";
+import { checkIfAlteredOrSyntheticContent } from "./scripts/check_if_altered_or_synthetic_content.mjs";
 import { recommendationsLoadedObserver } from "./scripts/recommendations_loaded_observer.mjs";
 
 console.log(`AutoMix; start => ${Date.now()}`);
@@ -328,6 +329,15 @@ async function extractVidoeGenre(tabId: number): Promise<string | undefined> {
     return "Music";
 }
 
+async function checkIfVideoIsAlteredOrSyntheticContent(tabId: number): Promise<boolean | undefined> {
+    const res = await browser.scripting.executeScript({
+        target: { tabId: tabId! },
+        func: checkIfAlteredOrSyntheticContent,
+    });
+    const result = res.at(0)?.result as boolean | undefined;
+    return result;
+}
+
 async function handleVideoStartMessage() {
     const state = await getAutoMixState();
     if (state.youtubeTabID === undefined) return;
@@ -363,6 +373,11 @@ async function handleRecommendationsLoadedMessage() {
 
             const genre = await extractVidoeGenre(state.youtubeTabID!);
             if (genre !== "Music") {
+                skipToEndOfVideo(state.youtubeTabID!);
+            }
+
+            const altered_or_synthetic_content = await checkIfVideoIsAlteredOrSyntheticContent(state.youtubeTabID!);
+            if (altered_or_synthetic_content === true) {
                 skipToEndOfVideo(state.youtubeTabID!);
             }
         });
