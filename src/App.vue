@@ -3,7 +3,7 @@ import browser, { Runtime } from "webextension-polyfill";
 import { ref, onMounted } from 'vue';
 import { AutoMixStateUpdateMessage, PopupMessage } from "./interfaces.mjs";
 import { clearAutoMixState, clearAutoMixStateTrackedTab, getAutoMixState, setAutoMixState, videoIdIntoUrl } from "./utils.mjs";
-import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, getHideYouTubeUI, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl } from "./popup_utils.mjs";
+import { getEnsureTheatreModeValue, getEnsureHighestQualityValue, getPlayedVideosCount, getHideYouTubeUI, clearPlayedVideos, navigateToUrl, videoIdIntoThumbnailUrl, getNextVideoId, getNextVideoTitle, getShowClearTrackedTabButton } from "./popup_utils.mjs";
 
 const ensureTheatreMode = ref(false);
 const ensureHighestQuality = ref(false);
@@ -82,12 +82,14 @@ function onMountedHook() {
     getHideYouTubeUI().then(
         (checked) => hideYouTubeUI.value = checked
     );
-    getAutoMixState().then(
-        (s) => {
-            nextVideoId.value = (s.nextVideoId) ? s.nextVideoId : "";
-            nextVideoTitle.value = (s.nextVideoTitle) ? s.nextVideoTitle : "";
-            showClearTrackedTabButton.value = (s.youtubeTabID !== undefined) ? true : false;
-        }
+    getNextVideoId().then(
+        id => nextVideoId.value = id
+    );
+    getNextVideoTitle().then(
+        title => nextVideoTitle.value = title
+    )
+    getShowClearTrackedTabButton().then(
+        value => showClearTrackedTabButton.value = value
     );
 }
 

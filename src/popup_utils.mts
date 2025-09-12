@@ -43,6 +43,21 @@ export async function getFilterOutNonMusicContent(): Promise<boolean> {
     return state.filterOutNonMusicContent;
 }
 
+export async function getNextVideoId(): Promise<string> {
+    const state = await getAutoMixState();
+    return (state.nextVideoId) ? state.nextVideoId : "";
+}
+
+export async function getNextVideoTitle(): Promise<string> {
+    const state = await getAutoMixState();
+    return (state.nextVideoTitle) ? state.nextVideoTitle : "";
+}
+
+export async function getShowClearTrackedTabButton(): Promise<boolean> {
+    const state = await getAutoMixState();
+    return (state.youtubeTabID !== undefined) ? true : false;
+}
+
 export function navigateToUrl(url: string) {
     browser.tabs.create({ url: url });
 }
