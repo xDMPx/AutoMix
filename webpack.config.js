@@ -14,6 +14,7 @@ module.exports = {
         disable_autoplay: './src/scripts/disable_autoplay.mts',
         disable_auto_dubbing: './src/scripts/disable_auto_dubbing.mts',
         load_all_recommendations: './src/scripts/load_all_recommendations.mts',
+        hide_youtube_ui: './src/scripts/hide_youtube_ui.mts'
     },
     module: {
         rules: [
