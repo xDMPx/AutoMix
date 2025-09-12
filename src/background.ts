@@ -1,5 +1,5 @@
 import browser, { Runtime } from "webextension-polyfill";
-import { VideoEndMessage, Message, PopupMessage } from "./interfaces.mjs";
+import { VideoEndMessage, Message, PopupMessage, AutoMixStateUpdateMessage } from "./interfaces.mjs";
 import { getAutoMixState, setAutoMixState, extractVideoId, videoIdIntoUrl, durationToSec, clearAutoMixStatePreservingSettings, clearAutoMixStateTrackedTab } from "./utils.mjs";
 import { extractRecommendations } from "./scripts/extract_recommendations.mjs";
 import { addVideoEndedListener } from "./scripts/add_video_ended_listener.mjs";
@@ -120,6 +120,16 @@ browser.runtime.onMessage.addListener(async (_msg: unknown, _sender: Runtime.Mes
     else if (msg.videoEndMessage) {
         console.log(`AutoMix; Message => videoEndMessage`);
         handleVideoEndMessage(msg.videoEndMessage);
+    }
+
+    const pmsg = _msg as AutoMixStateUpdateMessage;
+    if (pmsg.source !== undefined) {
+        console.log(`AutoMix; Message => AutoMixStateUpdateMessage`);
+        if (pmsg.source === "popup") {
+            if (state.hideYouTubeUI === true) {
+                hideYouTubeUI(state.youtubeTabID!);
+            }
+        }
     }
 });
 
