@@ -129,6 +129,9 @@ browser.runtime.onMessage.addListener(async (_msg: unknown, _sender: Runtime.Mes
             if (state.hideYouTubeUI === true) {
                 hideYouTubeUI(state.youtubeTabID!);
             }
+            if (state.hideYouTubeUI === false) {
+                hideYouTubeUI(state.youtubeTabID!);
+            }
         }
     }
 });
