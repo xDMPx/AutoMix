@@ -64,6 +64,18 @@ async function onClearTrackedTab() {
     onMountedHook();
 }
 
+async function switchToTrackedTab() {
+    const state = await getAutoMixState();
+    if (state.youtubeTabID !== undefined) {
+        chrome.tabs.update(
+            state.youtubeTabID,
+            {
+                active: true,
+            }
+        )
+    }
+}
+
 async function onClearPlayedVideosClick() {
     await clearPlayedVideos();
     playedVideosCount.value = await getPlayedVideosCount();
@@ -91,6 +103,7 @@ function onMountedHook() {
     getShowClearTrackedTabButton().then(
         value => showClearTrackedTabButton.value = value
     );
+
 }
 
 onMounted(onMountedHook);
@@ -131,12 +144,15 @@ onMounted(onMountedHook);
             </label>
         </div>
         <div class="divider" />
-        <div class="space-y-4">
+        <div class="grid space-y-4">
             <div>
                 <button class="btn btn-sm btn-secondary" @click="onClearPlayedVideosClick">Clear played videos</button>
                 <span class="pl-2"> ({{ playedVideosCount }}) </span>
             </div>
             <button v-if="showClearTrackedTabButton" class="btn btn-sm btn-secondary" @click="onClearTrackedTab">Clear
+                tracked tab</button>
+            <button v-if="showClearTrackedTabButton" class="btn btn-sm btn-secondary" @click="switchToTrackedTab">Switch
+                to
                 tracked tab</button>
         </div>
     </div>
