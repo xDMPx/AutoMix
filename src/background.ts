@@ -6,6 +6,7 @@ import { addVideoEndedListener } from "./scripts/add_video_ended_listener.mjs";
 import { extractGenre } from "./scripts/extract_genre.mjs";
 import { checkIfAlteredOrSyntheticContent } from "./scripts/check_if_altered_or_synthetic_content.mjs";
 import { recommendationsLoadedObserver } from "./scripts/recommendations_loaded_observer.mjs";
+import { addPlayNextAction } from "./scripts/add_play_next_action.mjs";
 
 console.log(`AutoMix; start => ${Date.now()}`);
 
@@ -101,6 +102,7 @@ browser.tabs.onUpdated.addListener(async (tabId: number, changeInfo: browser.Tab
 
     if (changeInfo.status === "loading" && state.attachedListener === true && state.nextVideoId !== null) {
         attachVideoEndedListener(tabId, videoIdIntoUrl(state.nextVideoId));
+        attachPlayNextAction(tabId, videoIdIntoUrl(state.nextVideoId));
     }
 
 })
@@ -247,6 +249,16 @@ async function attachVideoEndedListener(tabID: number, nextVideoUrl: string) {
     });
 }
 
+
+async function attachPlayNextAction(tabID: number, nextVideoUrl: string) {
+    console.log(`AutoMix; Attaching ended event listener`);
+    await browser.scripting.executeScript({
+        target: { tabId: tabID },
+        func: addPlayNextAction,
+        args: [nextVideoUrl]
+    });
+}
+
 async function disableAutoplay(tabID: number) {
     await browser.scripting.executeScript({
         target: { tabId: tabID },
@@ -375,6 +387,7 @@ async function handleRecommendationsLoadedMessage() {
             state.nextVideoTitle = video_title;
             await setAutoMixState(state);
             await attachVideoEndedListener(state.youtubeTabID!, video_url);
+            await attachPlayNextAction(state.youtubeTabID!, video_url);
 
             const genre = await extractVidoeGenre(state.youtubeTabID!);
             if (genre !== "Music") {
