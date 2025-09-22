@@ -24,7 +24,7 @@ export function recommendationsLoadedObserver(min_recommendations_count: number)
 
     if (!document.URL) return;
 
-    console.log(`AutoMix; Ataching recommendations loaded observer => ${min_recommendations_count}`);
+    console.log(`AutoMix; Attaching recommendations loaded observer => ${min_recommendations_count}`);
     const recommendations_count = getFullyLoadedVideoRecommendationsCount();
 
     if (recommendations_count > min_recommendations_count) {

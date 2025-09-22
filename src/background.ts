@@ -239,7 +239,7 @@ async function navigateToNextVideo(tabID: number, nextVideoUrl: string) {
 }
 
 async function attachVideoEndedListener(tabID: number, nextVideoUrl: string) {
-    console.log(`AutoMix; Ataching ended event listener`);
+    console.log(`AutoMix; Attaching ended event listener`);
     await browser.scripting.executeScript({
         target: { tabId: tabID },
         func: addVideoEndedListener,

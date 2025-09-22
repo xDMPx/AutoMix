@@ -3,8 +3,8 @@ import { Message } from "../interfaces.mjs";
 export function addVideoEndedListener(nextVideoUrl: string) {
     const video = document.querySelectorAll('video')[0];
 
-    console.log(`AutoMix; Ataching ended event listener => ${nextVideoUrl}`);
-    console.log(`AutoMix; Ataching ended event listener => ${video.ended}`);
+    console.log(`AutoMix; Attaching ended event listener => ${nextVideoUrl}`);
+    console.log(`AutoMix; Attaching ended event listener => ${video.ended}`);
     if (!video.ended) {
         video.addEventListener("ended",
             (e: Event) => {

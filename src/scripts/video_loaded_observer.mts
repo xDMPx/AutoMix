@@ -9,7 +9,7 @@ function createVideoStartMessage(): Message {
 (() => {
     if (!document.URL) return;
 
-    console.log(`AutoMix; Ataching video loaded observer`);
+    console.log(`AutoMix; Attaching video loaded observer`);
     const video_elements = document.querySelectorAll('video');
     if (video_elements.length > 0) {
         const msg = createVideoStartMessage();
