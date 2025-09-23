@@ -103,6 +103,7 @@ browser.tabs.onUpdated.addListener(async (tabId: number, changeInfo: browser.Tab
     if (changeInfo.status === "loading" && state.attachedListener === true && state.nextVideoId !== null) {
         attachVideoEndedListener(tabId, videoIdIntoUrl(state.nextVideoId));
         attachPlayNextAction(tabId, videoIdIntoUrl(state.nextVideoId));
+        attachPlayPrevAction(state.youtubeTabID!);
     }
 
 })
@@ -249,13 +250,21 @@ async function attachVideoEndedListener(tabID: number, nextVideoUrl: string) {
     });
 }
 
-
 async function attachPlayNextAction(tabID: number, nextVideoUrl: string) {
-    console.log(`AutoMix; Attaching ended event listener`);
+    console.log(`AutoMix; Attaching play next action listener`);
     await browser.scripting.executeScript({
         target: { tabId: tabID },
         func: addPlayNextAction,
         args: [nextVideoUrl]
+    });
+}
+
+async function attachPlayPrevAction(tabID: number) {
+    console.log(`AutoMix; Attaching play prev action listener`);
+    await browser.scripting.executeScript({
+        target: { tabId: tabID },
+        func: addPlayNextAction,
+        args: []
     });
 }
 
@@ -388,6 +397,7 @@ async function handleRecommendationsLoadedMessage() {
             await setAutoMixState(state);
             await attachVideoEndedListener(state.youtubeTabID!, video_url);
             await attachPlayNextAction(state.youtubeTabID!, video_url);
+            await attachPlayPrevAction(state.youtubeTabID!);
 
             const genre = await extractVidoeGenre(state.youtubeTabID!);
             if (genre !== "Music") {
