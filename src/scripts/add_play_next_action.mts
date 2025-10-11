@@ -37,4 +37,5 @@ export function addPlayNextAction(nextVideoUrl: string) {
             }, 1000);
         }
     };
+    attachMediaSessionNextAction();
 }

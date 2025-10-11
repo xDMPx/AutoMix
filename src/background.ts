@@ -7,6 +7,7 @@ import { extractGenre } from "./scripts/extract_genre.mjs";
 import { checkIfAlteredOrSyntheticContent } from "./scripts/check_if_altered_or_synthetic_content.mjs";
 import { recommendationsLoadedObserver } from "./scripts/recommendations_loaded_observer.mjs";
 import { addPlayNextAction } from "./scripts/add_play_next_action.mjs";
+import { addPlayPrevAction } from "./scripts/add_play_prev_action.mjs";
 
 console.log(`AutoMix; start => ${Date.now()}`);
 
@@ -263,7 +264,7 @@ async function attachPlayPrevAction(tabID: number) {
     console.log(`AutoMix; Attaching play prev action listener`);
     await browser.scripting.executeScript({
         target: { tabId: tabID },
-        func: addPlayNextAction,
+        func: addPlayPrevAction,
         args: []
     });
 }
