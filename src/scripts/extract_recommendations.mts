@@ -14,7 +14,7 @@ export function extractRecommendations(): {
     const recommendations = elements_array.map(
         (element) => {
             const video_url = element.getElementsByTagName("a").item(0)?.href;
-            const video_title = element.getElementsByTagName("span").item(0)?.innerText;
+            const video_title = element.getElementsByClassName("yt-lockup-view-model__metadata")[0].getElementsByTagName("span").item(0)?.innerText;
             const duration = element.getElementsByClassName("yt-badge-shape__text").item(0)?.innerHTML;
             if (video_url === undefined || duration === undefined || video_title === undefined) {
                 return undefined;
