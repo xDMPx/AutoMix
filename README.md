@@ -23,6 +23,17 @@ YouTube also likes to mess with quality when set to *Auto*; this extension ensur
 - Playback history can be persisted across multiple sessions, avoiding repeats
 - Quick switch to the AutoMix‑controlled tab from the extension popup
 
+## Preview
+
+<p align="center">
+<img src="./assets/preview.gif">
+</p>
+<p align="center">
+<img src="./assets/1.png" height="500">
+<img src="./assets/2.png" height="500">
+</p>
+
+
 ## Building
 
 [Devbox](https://www.jetify.com/devbox) is chosen because it guarantees a consistent development environment.
