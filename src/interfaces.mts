@@ -31,6 +31,7 @@ export interface PopupMessage {
 
 export interface AutoMixStateUpdateMessage {
     source: string,
+    reason: string,
 }
 
 export interface VideoPlayer extends Element {

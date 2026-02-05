@@ -25,8 +25,8 @@ browser.runtime.onMessage.addListener(async (_msg: unknown, _sender: Runtime.Mes
     }
 });
 
-async function sendStateUpdateMessage() {
-    const msg: AutoMixStateUpdateMessage = { source: "popup" };
+async function sendStateUpdateMessage(reason: string) {
+    const msg: AutoMixStateUpdateMessage = { source: "popup", reason };
     chrome.runtime.sendMessage(msg);
 }
 
@@ -35,7 +35,7 @@ async function toggleEnsureTheatreMode() {
     state.ensureTheatreMode = !state.ensureTheatreMode;
     console.log(`AutoMixPopup; toggleEnsureTheatreMode => ${state.ensureTheatreMode}`);
     await setAutoMixState(state);
-    sendStateUpdateMessage();
+    sendStateUpdateMessage("ensureTheatreMode");
 }
 
 async function toggleEnsureHighestQuality() {
@@ -43,7 +43,7 @@ async function toggleEnsureHighestQuality() {
     state.ensureHighestQuality = !state.ensureHighestQuality;
     console.log(`AutoMixPopup; ensureHighestQuality => ${state.ensureHighestQuality}`);
     await setAutoMixState(state);
-    sendStateUpdateMessage();
+    sendStateUpdateMessage("ensureHighestQuality");
 }
 
 async function toggleHideYouTubeUI() {
@@ -51,7 +51,7 @@ async function toggleHideYouTubeUI() {
     state.hideYouTubeUI = !state.hideYouTubeUI;
     console.log(`AutoMixPopup; hideYouTubeUI => ${state.hideYouTubeUI}`);
     await setAutoMixState(state);
-    sendStateUpdateMessage();
+    sendStateUpdateMessage("hideYouTubeUI");
 }
 
 async function onClearTrackedTab() {

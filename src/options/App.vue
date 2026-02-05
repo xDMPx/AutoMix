@@ -21,8 +21,8 @@ browser.runtime.onMessage.addListener(async (_msg: unknown, _sender: Runtime.Mes
     }
 });
 
-async function sendStateUpdateMessage() {
-    const msg: AutoMixStateUpdateMessage = { source: "options" };
+async function sendStateUpdateMessage(reason: string) {
+    const msg: AutoMixStateUpdateMessage = { source: "options", reason };
     chrome.runtime.sendMessage(msg);
 }
 
@@ -31,7 +31,7 @@ async function toggleEnsureTheatreMode() {
     state.ensureTheatreMode = !state.ensureTheatreMode;
     console.log(`AutoMixPopup; toggleEnsureTheatreMode => ${state.ensureTheatreMode}`);
     await setAutoMixState(state);
-    sendStateUpdateMessage();
+    sendStateUpdateMessage("ensureTheatreMode");
 }
 
 async function toggleEnsureHighestQuality() {
@@ -39,7 +39,7 @@ async function toggleEnsureHighestQuality() {
     state.ensureHighestQuality = !state.ensureHighestQuality;
     console.log(`AutoMixPopup; ensureHighestQuality => ${state.ensureHighestQuality}`);
     await setAutoMixState(state);
-    sendStateUpdateMessage();
+    sendStateUpdateMessage("ensureHighestQuality");
 }
 
 async function toggleHideYouTubeUI() {
@@ -47,7 +47,7 @@ async function toggleHideYouTubeUI() {
     state.hideYouTubeUI = !state.hideYouTubeUI;
     console.log(`AutoMixPopup; hideYouTubeUI => ${state.hideYouTubeUI}`);
     await setAutoMixState(state);
-    sendStateUpdateMessage();
+    sendStateUpdateMessage("hideYouTubeUI");
 }
 
 async function toggleClearPlayedVideosManually() {
@@ -55,7 +55,7 @@ async function toggleClearPlayedVideosManually() {
     state.clearPlayedVideosManually = !state.clearPlayedVideosManually;
     console.log(`AutoMixPopup; clearPlayedVideosManually => ${state.clearPlayedVideosManually}`);
     await setAutoMixState(state);
-    sendStateUpdateMessage();
+    sendStateUpdateMessage("clearPlayedVideosManually");
 }
 
 async function toggleFilterOutNonMusicContent() {
@@ -63,7 +63,7 @@ async function toggleFilterOutNonMusicContent() {
     state.filterOutNonMusicContent = !state.filterOutNonMusicContent;
     console.log(`AutoMixPopup; filterOutNonMusicContent => ${state.filterOutNonMusicContent}`);
     await setAutoMixState(state);
-    sendStateUpdateMessage();
+    sendStateUpdateMessage("filterOutNonMusicContent");
 }
 
 async function onSavePlayedVideosArrayMaxSize() {
@@ -78,13 +78,13 @@ async function onSavePlayedVideosArrayMaxSize() {
     state.playedVideosArrayMaxSize = playedVideosArrayMaxSize.value;
     console.log(`AutoMixPopup; playedVideosArrayMaxSize => ${state.playedVideosArrayMaxSize}`);
     await setAutoMixState(state);
-    sendStateUpdateMessage();
+    sendStateUpdateMessage("playedVideosArrayMaxSize ");
 }
 
 async function onClearStateClick() {
     clearAutoMixState();
     onMountedHook();
-    sendStateUpdateMessage();
+    sendStateUpdateMessage("clearState");
 }
 
 function onMountedHook() {

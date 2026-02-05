@@ -129,7 +129,11 @@ browser.runtime.onMessage.addListener(async (_msg: unknown, _sender: Runtime.Mes
     const pmsg = _msg as AutoMixStateUpdateMessage;
     if (pmsg.source !== undefined) {
         console.log(`AutoMix; Message => AutoMixStateUpdateMessage`);
-        if (pmsg.source === "popup") {
+        console.log(pmsg);
+        console.log(pmsg.source === "popup");
+        console.log(pmsg.reason === "hideYouTubeUI");
+        if (pmsg.source === "popup" && pmsg.reason === "hideYouTubeUI") {
+            console.log(`AutoMix; Message => hideYouTubeUI`);
             if (state.hideYouTubeUI === true) {
                 hideYouTubeUI(state.youtubeTabID!);
             }
