@@ -52,7 +52,7 @@ YouTube also likes to mess with quality when set to *Auto*; this extension ensur
 
 The extension is not published on the Firefox Add-ons.
 
-To install download the latest `.xpi` file from the <a href="/xdmpx/automix/releases">releases</a> page.
+To install download the latest `.xpi` file from the [releases](../../releases) page.
 
 In Firefox, open `about:addons` -> `Install Add‑on From File...` and select the downloaded `.xpi`.
 
