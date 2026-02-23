@@ -30,6 +30,12 @@ export function addPlayNextAction(nextVideoUrl: string) {
                 const msg: Message = { videoEndMessage: { ended: true, nextVideoUrl: nextVideoUrl }, videoStartMessage: undefined, recommendationsLoadedMessage: undefined };
                 chrome.runtime.sendMessage(msg);
             };
+            document.addEventListener("keydown", (event) => {
+                if (event.shiftKey && event.key === 'N') {
+                    const msg: Message = { videoEndMessage: { ended: true, nextVideoUrl: nextVideoUrl }, videoStartMessage: undefined, recommendationsLoadedMessage: undefined };
+                    chrome.runtime.sendMessage(msg);
+                }
+            });
         }
         else {
             setTimeout(() => {

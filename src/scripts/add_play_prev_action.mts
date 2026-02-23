@@ -21,6 +21,11 @@ export function addPlayPrevAction() {
                 console.log(`AutoMix; Prev Button`);
                 video.currentTime = 0.0;
             };
+            document.addEventListener("keydown", (event) => {
+                if (event.shiftKey && event.key === 'p') {
+                    video.currentTime = 0.0;
+                }
+            });
         }
         else {
             setTimeout(() => {
