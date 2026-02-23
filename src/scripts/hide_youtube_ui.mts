@@ -15,5 +15,6 @@
             below?.setProperty("display", "none");
             secondary?.setProperty("display", "none");
         }
+        window.dispatchEvent(new Event('resize'));
     }, 1000);
 })();
