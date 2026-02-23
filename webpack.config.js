@@ -68,6 +68,7 @@ module.exports = {
                 { from: "./assets/icon_48.png", to: "./icon_48.png" },
                 { from: "./assets/icon_64.png", to: "./icon_64.png" },
                 { from: "./assets/icon_128.png", to: "./icon_128.png" },
+                { from: "./assets/MaterialSymbolsOutlined/settings_16dp_E3E3E3_FILL0_wght400_GRAD0_opsz20.svg", to: "./settings_16dp_E3E3E3_FILL0_wght400_GRAD0_opsz20.svg" },
             ],
         }),
         new VueLoaderPlugin(),

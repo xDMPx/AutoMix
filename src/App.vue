@@ -112,12 +112,17 @@ onMounted(onMountedHook);
 
 <template>
     <div class="w-full h-full table p-2">
+        <div class="float-right btn btn-ghost btn-circle btn-xs" @click="browser.runtime.openOptionsPage()">
+            <img src="settings_16dp_E3E3E3_FILL0_wght400_GRAD0_opsz20.svg" alt="settings" />
+        </div>
         <div class="space-y-4">
-            <p>Next:</p>
-            <a class="link link-secondary" :href="videoIdIntoUrl(nextVideoId)"
-                @click="navigateToUrl(videoIdIntoUrl(nextVideoId))">
-                {{ nextVideoTitle }}
-            </a>
+            <div class="flex">
+                <p class="whitespace-pre">Next: </p>
+                <a class="link link-secondary" :href="videoIdIntoUrl(nextVideoId)"
+                    @click="navigateToUrl(videoIdIntoUrl(nextVideoId))">
+                    {{ nextVideoTitle }}
+                </a>
+            </div>
             <img :src="videoIdIntoThumbnailUrl(nextVideoId)" loading="lazy"
                 class="rounded-md object-cover w-[168px] h-[94px] m-auto" />
         </div>
