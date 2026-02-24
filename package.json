@@ -1,6 +1,6 @@
 {
   "name": "automix",
-  "version": "0.1.12",
+  "version": "0.2.0",
   "description": "AutoMix Chrome Extension",
   "main": "index.js",
   "scripts": {
