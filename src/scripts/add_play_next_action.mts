@@ -25,7 +25,6 @@ export function addPlayNextAction(nextVideoUrl: string) {
             const ytp_left_controls = document.getElementsByClassName('ytp-left-controls')[0];
             const ytp_next_button = ytp_left_controls.getElementsByClassName("ytp-next-button")[0] as HTMLAnchorElement;
             ytp_next_button.style.display = "inline-block";
-            ytp_next_button.ariaLabel = "Next";
             const data_duration = ytp_next_button.attributes.getNamedItem("data-duration");
             if (data_duration !== null) {
                 data_duration.value = "";
